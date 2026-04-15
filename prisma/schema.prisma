@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                      String        @id @default(cuid())
+  nome                    String
+  email                   String        @unique
+  senhaHash               String
+  perfil                  String
+  criadoEm                DateTime      @default(now())
+  barbeariasResponsaveis  Barbearia[]   @relation("ResponsavelBarbearia")
+  barbeiro                Barbeiro?
+  agendamentosContratante Agendamento[] @relation("ContratanteAgendamentos")
+}
+
+model Barbearia {
+  id            String        @id @default(cuid())
+  nome          String
+  descricao     String
+  endereco      String
+  telefone      String
+  criadoEm      DateTime      @default(now())
+  responsavelId String
+  responsavel   Usuario       @relation("ResponsavelBarbearia", fields: [responsavelId], references: [id], onDelete: Restrict)
+  barbeiros     Barbeiro[]
+  servicos      Servico[]
+  agendamentos  Agendamento[]
+
+  @@index([responsavelId])
+}
+
+model Barbeiro {
+  id              String           @id @default(cuid())
+  nome            String
+  especialidade   String
+  descricao       String
+  telefone        String
+  ativo           Boolean          @default(true)
+  usuarioId       String?          @unique
+  barbeariaId     String?
+  criadoEm        DateTime         @default(now())
+  usuario         Usuario?         @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  barbearia       Barbearia?       @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
+  disponibilidades Disponibilidade[]
+  agendamentos    Agendamento[]
+
+  @@index([barbeariaId])
+}
+
+model Servico {
+  id             String         @id @default(cuid())
+  nome           String
+  descricao      String
+  preco          Float
+  duracaoMinutos Int
+  ativo          Boolean        @default(true)
+  barbeariaId    String
+  barbearia      Barbearia      @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  agendamentos   Agendamento[]
+
+  @@index([barbeariaId])
+}
+
+model Disponibilidade {
+  id         String     @id @default(cuid())
+  barbeiroId String
+  diaSemana  String
+  horaInicio String
+  horaFim    String
+  barbeiro   Barbeiro   @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
+
+  @@index([barbeiroId, diaSemana])
+}
+
+model Agendamento {
+  id            String             @id @default(cuid())
+  contratanteId String
+  barbeariaId   String
+  barbeiroId    String
+  servicoId     String
+  data          DateTime
+  hora          String
+  status        String             @default("PENDENTE")
+  observacao    String?
+  criadoEm      DateTime           @default(now())
+  contratante   Usuario            @relation("ContratanteAgendamentos", fields: [contratanteId], references: [id], onDelete: Restrict)
+  barbearia     Barbearia          @relation(fields: [barbeariaId], references: [id], onDelete: Restrict)
+  barbeiro      Barbeiro           @relation(fields: [barbeiroId], references: [id], onDelete: Restrict)
+  servico       Servico            @relation(fields: [servicoId], references: [id], onDelete: Restrict)
+  avaliacao     Avaliacao?
+
+  @@unique([barbeiroId, data, hora])
+  @@index([contratanteId, data])
+  @@index([barbeariaId, data])
+  @@index([barbeiroId, data])
+}
+
+model Avaliacao {
+  id            String      @id @default(cuid())
+  agendamentoId String      @unique
+  nota          Int
+  comentario    String?
+  criadoEm      DateTime    @default(now())
+  agendamento   Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+}

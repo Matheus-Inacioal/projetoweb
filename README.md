@@ -1,149 +1,137 @@
 # BarberGo
 
-Marketplace de agendamento de serviços com foco inicial em **barbearias**, permitindo que clientes encontrem estabelecimentos, escolham barbeiros específicos, agendem horários e acompanhem seus atendimentos de forma simples, prática e organizada.
+Marketplace de agendamento com foco inicial em **barbearias**, permitindo cadastro, login, diferenciação de perfis, gestão operacional e agendamento de serviços com barbeiro, data e horário.
 
 ## Integrantes
 
 - **Matheus Inacio de Almeida Arruda** — **UC22200674**
 - **Wellington Gabriel Menezes da Silva** — **UC22101982**
 
-## Sobre o projeto
+## Stack do MVP
 
-O **BarberGo** é uma plataforma digital desenvolvida para conectar clientes, barbeiros e barbearias em um único ambiente. A proposta do projeto é facilitar o processo de busca, escolha e agendamento de serviços, oferecendo mais praticidade para quem contrata e mais organização para quem presta o serviço.
+- **Next.js** com **App Router**
+- **TypeScript**
+- **Tailwind CSS**
+- **Prisma**
+- **SQLite**
+- **React Server Components** para layouts e guardas
+- **API Routes** para autenticação, cadastros e agendamentos
 
-O projeto foi pensado inicialmente para o nicho de **barbearias**, mas com possibilidade de expansão futura para outros serviços da área da beleza. Além da experiência do cliente, a aplicação também atende às necessidades operacionais dos profissionais e estabelecimentos, permitindo acompanhar horários, atendimentos e agenda diária de forma centralizada.
-
-## Problema
-
-Atualmente, muitos agendamentos em barbearias ainda acontecem por meio de mensagens, redes sociais ou anotações manuais, o que pode gerar:
-
-- conflitos de horário;
-- demora no atendimento ao cliente;
-- falta de organização da agenda;
-- dificuldade para visualizar profissionais e serviços disponíveis;
-- perda de oportunidades de atendimento.
-
-## Solução
-
-O BarberGo propõe uma solução centralizada de agendamento, em que o cliente pode encontrar uma barbearia, visualizar os barbeiros disponíveis, escolher um serviço e confirmar seu horário. Do outro lado, barbeiros e barbearias conseguem visualizar os agendamentos de forma organizada, melhorando a gestão da rotina e a experiência do atendimento.
-
-## Objetivo do projeto
-
-Desenvolver uma aplicação que permita:
-
-- ao **contratante**, buscar e agendar serviços;
-- ao **prestador de serviços PF**, organizar sua agenda de atendimentos;
-- ao **prestador de serviços PJ / barbearia**, gerenciar profissionais, serviços e horários;
-- ao **administrador**, monitorar usuários, prestadores e agendamentos da plataforma.
-
-## Perfis de usuário
-
-### Contratante
-Usuário que deseja buscar uma barbearia, escolher um barbeiro específico e realizar um agendamento.
-
-### Prestador de serviços PF
-Profissional que presta atendimento diretamente e precisa acompanhar sua agenda, horários e atendimentos.
-
-### Prestador de serviços PJ / Barbearia
-Estabelecimento responsável por cadastrar serviços, gerenciar barbeiros e acompanhar a agenda geral da barbearia.
-
-### Administrador
-Responsável pela gestão da plataforma, monitoramento de usuários, prestadores e agendamentos.
-
-## Funcionalidades previstas
-
-### Contratante
-- cadastro e login;
-- busca de barbearias;
-- visualização de barbeiros disponíveis;
-- seleção de serviços;
-- agendamento de horários;
-- visualização de histórico de agendamentos;
-- cancelamento e reagendamento;
-- avaliação do atendimento.
-
-### Prestador de serviços PF
-- visualização da agenda;
-- gerenciamento de disponibilidade;
-- atualização do perfil profissional;
-- acompanhamento dos atendimentos.
-
-### Prestador de serviços PJ / Barbearia
-- cadastro da barbearia;
-- gerenciamento de barbeiros;
-- gerenciamento de serviços;
-- visualização da agenda geral;
-- organização dos atendimentos do estabelecimento.
-
-### Administrador
-- gerenciamento de usuários;
-- gerenciamento de prestadores;
-- monitoramento de agendamentos;
-- configurações gerais da plataforma.
-
-## Diferenciais
-
-- foco inicial em um nicho específico: **barbearias**;
-- agendamento bilateral entre cliente e profissional;
-- centralização da agenda em uma única plataforma;
-- melhor organização para a operação diária;
-- melhoria da experiência do cliente e do prestador;
-- possibilidade de expansão futura para outros serviços da área da beleza.
-
-## Proposta de valor
-
-O BarberGo oferece uma experiência de agendamento mais simples, rápida e confiável para os clientes, ao mesmo tempo em que melhora a organização da agenda e da operação para barbeiros e barbearias. A plataforma centraliza informações importantes do atendimento e reduz problemas comuns do agendamento manual.
-
-## Wireframe no Figma
-
-O protótipo da aplicação será desenvolvido no **Figma Design**, contemplando os fluxos dos perfis:
+## Perfis suportados
 
 - **Contratante**
-- **Prestador de serviços PF**
-- **Prestador de serviços PJ / Barbearia**
+- **Prestador PF**
+- **Prestador PJ / Barbearia**
 - **Admin**
 
-**Link do Figma:**  
-`[colar aqui o link público de visualização]`
+## Funcionalidades implementadas
 
-## Repositório
+### Contratante
+- cadastro e login
+- listagem pública de barbearias
+- visualização de detalhes da barbearia
+- visualização de barbeiros por barbearia
+- agendamento com barbeiro, serviço, data e horário
+- visualização de próximos agendamentos e histórico
+- cancelamento de agendamento
+- atualização de perfil
 
-**Link do repositório:**  
-`[colar aqui o link do GitHub]`
+### Prestador PF
+- dashboard com agenda do dia
+- página completa de agenda
+- cadastro de disponibilidade
+- atualização de perfil profissional
 
-## Business Model Canvas
+### Prestador PJ / Barbearia
+- dashboard da barbearia
+- agenda geral da barbearia
+- cadastro de barbeiros
+- cadastro de serviços
+- atualização de perfil da barbearia
 
-O modelo de negócios do BarberGo foi elaborado com foco em um marketplace de serviços voltado inicialmente à área de barbearias, considerando proposta de valor, segmentos de clientes, canais, relacionamento com clientes, fontes de receita, recursos principais, atividades principais, parcerias principais e estrutura de custos.
+### Admin
+- dashboard administrativo com métricas
+- listagem de usuários
+- listagem de barbearias
+- listagem de agendamentos
 
-## Elevator Pitch
+## Arquitetura
 
-O **BarberGo** é uma plataforma de agendamento de serviços com foco inicial em barbearias, criada para conectar clientes, barbeiros e estabelecimentos em um único ambiente digital. Por meio do aplicativo, o usuário pode encontrar barbearias, visualizar profissionais disponíveis, escolher serviços e agendar horários com praticidade, segurança e organização.
+O projeto segue a separação:
 
-Além de facilitar a vida do cliente, o BarberGo também entrega valor para os profissionais e para as barbearias, permitindo uma gestão mais eficiente da agenda, dos serviços e dos atendimentos. Assim, a plataforma melhora a experiência de todos os envolvidos e cria uma base sólida para futura expansão para outros segmentos da área da beleza.
+```text
+UI -> Hook -> Serviço -> Repositório -> Banco
+```
 
-## Marca
+Estrutura principal:
 
-**Nome da marca:** BarberGo
+```text
+src/
+  app/
+  componentes/
+  hooks/
+  lib/
+    autenticacao/
+    banco/
+    repositorios/
+    servicos/
+    utilitarios/
+    validacoes/
+  tipos/
+prisma/
+```
 
-A marca foi pensada para transmitir:
-- praticidade;
-- modernidade;
-- mobilidade;
-- organização;
-- conexão com o universo da barbearia.
+## Seed inicial
 
-## Tecnologias previstas
+O seed cria:
 
-- **Figma** para prototipação e wireframes;
-- **GitHub** para versionamento;
-- **TypeScript** para desenvolvimento;
-- **SQLite** para persistência local;
-- **Drizzle ORM** para modelagem e acesso a dados;
-- possibilidade futura de uso de **React / Next.js** ou stack equivalente.
+- 1 admin
+- 2 contratantes
+- 1 prestador PF
+- 1 prestador PJ
+- 1 barbearia
+- 2 barbeiros
+- 3 serviços
+- disponibilidades
+- agendamentos de exemplo
+- 1 avaliação
 
-## Status do projeto
+### Credenciais seed
 
-🚧 Projeto em fase acadêmica e de prototipação inicial.
+Senha padrão para todas as contas:
+
+```text
+123456
+```
+
+Usuários:
+
+- `admin@barbergo.com`
+- `carlos@barbergo.com`
+- `joao@barbergo.com`
+- `rafael@barbergo.com`
+- `contato@barbergocentro.com`
+
+## Como rodar
+
+```bash
+npm install
+npm run prisma:generate
+npm run banco:preparar
+npm run dev
+```
+
+Aplicação:
+
+```text
+http://localhost:3000
+```
+
+## Observações acadêmicas
+
+- O foco do projeto é um **MVP funcional**, simples e escalável.
+- A autenticação usa **cookie de sessão assinado** para simplificar o cenário local.
+- O banco é **SQLite**, ideal para demonstração local e desenvolvimento acadêmico.
 
 ## Licença
 

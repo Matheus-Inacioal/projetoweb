@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(163, 95, 43, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(23, 58, 53, 0.14), transparent 25%),
+    linear-gradient(180deg, #f5efe5 0%, #f9f4ec 100%);
+  color: #162320;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer components {
+  .container-pagina {
+    @apply mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+  }
+
+  .cartao {
+    @apply rounded-xl2 border border-white/70 bg-painel shadow-suave;
+  }
+
+  .campo-base {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-destaque focus:ring-2 focus:ring-destaque/20;
+  }
+
+  .botao-base {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition;
+  }
+
+  .botao-primario {
+    @apply botao-base bg-primaria text-white hover:bg-primaria/90;
+  }
+
+  .botao-secundario {
+    @apply botao-base border border-primaria/15 bg-white text-primaria hover:border-destaque/50 hover:text-destaque;
+  }
+
+  .botao-perigo {
+    @apply botao-base bg-perigo text-white hover:bg-perigo/90;
+  }
+}
+
