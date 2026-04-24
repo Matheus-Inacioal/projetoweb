@@ -27,6 +27,11 @@ export interface BarbeariaResumo {
   descricao: string;
   endereco: string;
   telefone: string;
+  bairro: string;
+  cidade: string;
+  avaliacaoMedia: number;
+  destaque: boolean;
+  imagem?: string | null;
   criadoEm: string;
   responsavelId: string;
   responsavelNome: string;

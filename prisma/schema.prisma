@@ -20,17 +20,22 @@ model Usuario {
 }
 
 model Barbearia {
-  id            String        @id @default(cuid())
-  nome          String
-  descricao     String
-  endereco      String
-  telefone      String
-  criadoEm      DateTime      @default(now())
-  responsavelId String
-  responsavel   Usuario       @relation("ResponsavelBarbearia", fields: [responsavelId], references: [id], onDelete: Restrict)
-  barbeiros     Barbeiro[]
-  servicos      Servico[]
-  agendamentos  Agendamento[]
+  id               String        @id @default(cuid())
+  nome             String
+  descricao        String
+  endereco         String
+  telefone         String
+  bairro           String        @default("")
+  cidade           String        @default("")
+  imagem           String?
+  avaliacaoMedia   Float         @default(0)
+  destaque         Boolean       @default(false)
+  criadoEm         DateTime      @default(now())
+  responsavelId    String
+  responsavel      Usuario       @relation("ResponsavelBarbearia", fields: [responsavelId], references: [id], onDelete: Restrict)
+  barbeiros        Barbeiro[]
+  servicos         Servico[]
+  agendamentos     Agendamento[]
 
   @@index([responsavelId])
 }
