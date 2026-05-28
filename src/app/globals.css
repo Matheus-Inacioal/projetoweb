@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,12 +10,14 @@
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(163, 95, 43, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(23, 58, 53, 0.14), transparent 25%),
-    linear-gradient(180deg, #f5efe5 0%, #f9f4ec 100%);
-  color: #162320;
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #FFF8EF 0%, #F5EFE6 50%, #FFF8EF 100%);
+  color: #0B1324;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  @apply bg-off_white;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 a {
@@ -26,32 +30,67 @@ a {
 }
 
 @layer components {
+  /* Containers */
   .container-pagina {
     @apply mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
   }
 
+  /* Cards */
   .cartao {
-    @apply rounded-xl2 border border-white/70 bg-painel shadow-suave;
+    @apply rounded-2xl border border-bege_borda bg-off_white shadow-suave transition hover:shadow-premium;
   }
 
+  /* Form Components */
   .campo-base {
-    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-destaque focus:ring-2 focus:ring-destaque/20;
+    @apply w-full rounded-lg border border-bege_borda bg-off_white px-4 py-3 text-sm text-texto_principal outline-none transition placeholder:text-texto_secundario focus:border-dourado focus:ring-2 focus:ring-dourado/20;
   }
 
+  /* Button Base Styles */
   .botao-base {
-    @apply inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition;
+    @apply inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold transition duration-200;
   }
 
+  /* Primary Button - Verde Petróleo */
   .botao-primario {
-    @apply botao-base bg-primaria text-white hover:bg-primaria/90;
+    @apply botao-base bg-verde_petroleo text-off_white shadow-suave hover:bg-verde_escuro hover:shadow-elevado active:scale-95;
   }
 
+  /* Secondary Button - Outline Verde */
   .botao-secundario {
-    @apply botao-base border border-primaria/15 bg-white text-primaria hover:border-destaque/50 hover:text-destaque;
+    @apply botao-base border-2 border-verde_petroleo bg-transparent text-verde_petroleo hover:bg-verde_petroleo/5 active:scale-95;
   }
 
+  /* Premium Button - Dourado */
+  .botao-premium {
+    @apply botao-base bg-dourado text-verde_petroleo shadow-suave hover:bg-dourado/90 hover:shadow-elevado active:scale-95;
+  }
+
+  /* Danger Button */
   .botao-perigo {
-    @apply botao-base bg-perigo text-white hover:bg-perigo/90;
+    @apply botao-base bg-vinho_escuro text-off_white shadow-suave hover:bg-vinho_escuro/90 hover:shadow-elevado active:scale-95;
+  }
+
+  /* Text Styles */
+  .titulo-secao {
+    @apply font-serif text-4xl font-bold text-verde_petroleo;
+  }
+
+  .subtitulo-secao {
+    @apply text-lg font-semibold text-verde_escuro;
+  }
+
+  .texto-destaque {
+    @apply text-xs font-semibold uppercase tracking-widest text-dourado;
+  }
+
+  /* Badge */
+  .badge-premium {
+    @apply inline-flex items-center gap-1 rounded-full bg-dourado/10 px-3 py-1 text-xs font-semibold text-dourado;
+  }
+
+  /* Divider */
+  .divisor {
+    @apply border-t border-bege_borda;
   }
 }
 

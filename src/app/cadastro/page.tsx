@@ -1,30 +1,54 @@
 import Link from "next/link";
 import { FormularioCadastro } from "@/componentes/formularios/FormularioCadastro";
-import { CabecalhoPagina } from "@/componentes/ui/CabecalhoPagina";
 
 export default function CadastroPage() {
   return (
-    <div className="container-pagina grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <section className="space-y-6">
-        <CabecalhoPagina
-          descricao="Cadastre uma conta e siga para a experiencia correspondente ao perfil escolhido."
-          subtitulo="Novo acesso"
-          titulo="Criar conta no BarberGo"
-        />
-        <FormularioCadastro />
-      </section>
-
-      <aside className="cartao space-y-5 p-6">
-        <h2 className="text-xl font-semibold text-slate-900">Perfis disponiveis no MVP</h2>
-        <div className="space-y-3 text-sm text-slate-600">
-          <p><strong>Contratante:</strong> agenda servicos e acompanha historico.</p>
-          <p><strong>Prestador PF:</strong> visualiza agenda do dia e configura disponibilidade.</p>
-          <p><strong>Prestador PJ:</strong> gerencia a barbearia, barbeiros e servicos.</p>
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Cabeçalho */}
+        <div className="text-center mb-8">
+          <p className="texto-destaque mb-2">INÍCIO PREMIUM</p>
+          <h1 className="titulo-secao mb-3">Crie sua conta exclusiva</h1>
+          <p className="text-texto_secundario">
+            Junte-se a nossa comunidade de barbearias e clientes selecionados.
+          </p>
         </div>
-        <p className="text-sm text-slate-600">
-          Ja possui uma conta? <Link className="font-semibold text-destaque" href="/login">Fazer login</Link>
-        </p>
-      </aside>
+
+        {/* Card do formulário */}
+        <div className="cartao p-8 mb-6">
+          <FormularioCadastro />
+        </div>
+
+        {/* Link para login */}
+        <div className="text-center">
+          <p className="text-texto_secundario mb-2">Já faz parte da comunidade?</p>
+          <Link href="/login" className="font-semibold text-verde_petroleo hover:text-verde_escuro transition">
+            Faça login aqui
+          </Link>
+        </div>
+
+        {/* Tipos de conta */}
+        <div className="mt-10 space-y-4 border-t border-bege_borda pt-8">
+          <p className="text-xs font-semibold uppercase tracking-widest text-texto_secundario text-center mb-4">
+            Tipo de conta
+          </p>
+          
+          <div className="rounded-lg bg-marfim p-4">
+            <p className="font-semibold text-verde_petroleo mb-1">👤 Cliente</p>
+            <p className="text-xs text-texto_secundario">Agende com seus barbeiros favoritos e acompanhe seu histórico.</p>
+          </div>
+
+          <div className="rounded-lg bg-marfim p-4">
+            <p className="font-semibold text-verde_petroleo mb-1">💼 Profissional</p>
+            <p className="text-xs text-texto_secundario">Configure sua disponibilidade e gerencie seus agendamentos.</p>
+          </div>
+
+          <div className="rounded-lg bg-marfim p-4">
+            <p className="font-semibold text-verde_petroleo mb-1">🏢 Barbearia</p>
+            <p className="text-xs text-texto_secundario">Cadastre sua barbearia e gerencie toda a operação.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

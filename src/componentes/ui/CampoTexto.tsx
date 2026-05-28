@@ -7,7 +7,7 @@ interface PropriedadesCampoTexto extends InputHTMLAttributes<HTMLInputElement> {
 export function CampoTexto({ label, id, ...props }: PropriedadesCampoTexto) {
   return (
     <label className="space-y-2">
-      <span className="block text-sm font-medium text-slate-700">{label}</span>
+      <span className="block text-sm font-medium text-texto-principal">{label}</span>
       <input className="campo-base" id={id} {...props} />
     </label>
   );

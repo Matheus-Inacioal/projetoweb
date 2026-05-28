@@ -9,16 +9,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        fundo: "#f5efe5",
-        painel: "#fffaf3",
-        destaque: "#a35f2b",
-        primaria: "#173a35",
-        secundaria: "#d7c3ab",
-        perigo: "#9f2d2d",
-        sucesso: "#1f6a4e"
+        // Paleta Premium
+        verde_petroleo: "#0F2F2A",
+        verde_escuro: "#174C43",
+        marfim: "#F5EFE6",
+        off_white: "#FFF8EF",
+        texto_principal: "#0B1324",
+        texto_secundario: "#526173",
+        dourado: "#C89B3C",
+        bege_borda: "#E4D8C8",
+        vinho_escuro: "#7A1F2B",
+        // Mapeamento para componentes (backward compatibility)
+        fundo: "#FFF8EF",
+        painel: "#FFF8EF",
+        destaque: "#C89B3C",
+        primaria: "#0F2F2A",
+        secundaria: "#E4D8C8",
+        perigo: "#7A1F2B",
+        sucesso: "#174C43"
+      },
+      fontFamily: {
+        sans: ["Inter", "Manrope", "Plus Jakarta Sans", "Segoe UI", "sans-serif"],
+        serif: ["Playfair Display", "Cormorant Garamond", "Fraunces", "Georgia", "serif"]
       },
       boxShadow: {
-        suave: "0 20px 45px -24px rgba(23, 58, 53, 0.28)"
+        suave: "0 8px 24px rgba(15, 47, 42, 0.12)",
+        premium: "0 12px 32px rgba(15, 47, 42, 0.16)",
+        elevado: "0 4px 12px rgba(15, 47, 42, 0.08)"
       },
       borderRadius: {
         xl2: "1.5rem"

@@ -6,7 +6,7 @@ import { BotaoLogout } from "@/componentes/layouts/BotaoLogout";
 function montarLinks(sessao: SessaoUsuario | null) {
   if (!sessao) {
     return [
-      { href: "/", label: "Inicio" },
+      { href: "/", label: "Início" },
       { href: "/login", label: "Entrar" },
       { href: "/cadastro", label: "Criar conta" }
     ];
@@ -32,13 +32,13 @@ function montarLinks(sessao: SessaoUsuario | null) {
     return [
       { href: "/barbearia/dashboard", label: "Dashboard" },
       { href: "/barbearia/barbeiros", label: "Barbeiros" },
-      { href: "/barbearia/servicos", label: "Servicos" }
+      { href: "/barbearia/servicos", label: "Serviços" }
     ];
   }
 
   return [
     { href: "/admin", label: "Dashboard" },
-    { href: "/admin/usuarios", label: "Usuarios" },
+    { href: "/admin/usuarios", label: "Usuários" },
     { href: "/admin/agendamentos", label: "Agendamentos" }
   ];
 }
@@ -47,13 +47,13 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
   const links = montarLinks(sessao);
 
   return (
-    <header className="border-b border-white/70 bg-white/80 backdrop-blur">
+    <header className="border-b border-bege_borda bg-gradient-to-r from-off_white to-marfim backdrop-blur">
       <div className="container-pagina flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <Link className="text-2xl font-black tracking-tight text-primaria" href="/">
+          <Link className="font-serif text-3xl font-bold tracking-tight text-verde_petroleo" href="/">
             BarberGo
           </Link>
-          <p className="mt-1 text-sm text-slate-600">Marketplace academico de agendamento para barbearias.</p>
+          <p className="mt-1 text-sm text-texto_secundario">Marketplace de barbearias premium</p>
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -61,7 +61,7 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
             {links.map((linkAtual) => (
               <Link
                 key={linkAtual.href}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-destaque hover:text-destaque"
+                className="rounded-lg border border-bege_borda bg-off_white px-4 py-2 text-sm font-medium text-texto_principal transition hover:border-dourado hover:text-dourado hover:shadow-suave"
                 href={linkAtual.href}
               >
                 {linkAtual.label}
@@ -71,9 +71,9 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
 
           {sessao ? (
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                <p className="font-semibold text-slate-900">{sessao.nome}</p>
-                <p>{rotulosPerfil[sessao.perfil]}</p>
+              <div className="rounded-lg border border-bege_borda bg-off_white px-4 py-3 text-sm text-texto_principal shadow-suave">
+                <p className="font-semibold text-verde_petroleo">{sessao.nome}</p>
+                <p className="text-xs text-texto_secundario">{rotulosPerfil[sessao.perfil]}</p>
               </div>
               <BotaoLogout />
             </div>
