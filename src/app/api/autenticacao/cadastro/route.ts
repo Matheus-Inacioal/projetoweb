@@ -1,12 +1,12 @@
-import { autenticacaoServico } from "@/lib/servicos/autenticacao-servico";
+import { autenticacaoServico } from "@/services/autenticacao-servico";
 import { responderErro, responderSucesso } from "@/lib/utilitarios/respostas-api";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const corpoRequisicao = await request.json();
-    const resultadoCadastro = await autenticacaoServico.cadastrarUsuario(corpoRequisicao);
+    const { email, senha, nome, telefone, tipo } = await request.json();
+    const resultadoCadastro = await autenticacaoServico.cadastrar(email, senha, nome, telefone, tipo);
 
     return responderSucesso(resultadoCadastro, "Cadastro realizado com sucesso.", 201);
   } catch (erro) {

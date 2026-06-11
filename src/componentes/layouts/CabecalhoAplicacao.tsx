@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { SessaoUsuario } from "@/tipos/dados";
-import { rotulosPerfil } from "@/tipos/enums";
+import { rotulosTipoUsuario } from "@/tipos/enums";
 import { BotaoLogout } from "@/componentes/layouts/BotaoLogout";
 
 function montarLinks(sessao: SessaoUsuario | null) {
@@ -12,34 +12,26 @@ function montarLinks(sessao: SessaoUsuario | null) {
     ];
   }
 
-  if (sessao.perfil === "CONTRATANTE") {
+  if (sessao.tipo === "consumidor") {
     return [
-      { href: "/", label: "Barbearias" },
-      { href: "/meus-agendamentos", label: "Meus agendamentos" },
+      { href: "/dashboard", label: "Encontrar Prestadores" },
+      { href: "/favoritos", label: "Favoritos" },
+      { href: "/contratacoes", label: "Minhas Contratações" },
       { href: "/perfil", label: "Perfil" }
     ];
   }
 
-  if (sessao.perfil === "PRESTADOR_PF") {
+  if (sessao.tipo === "prestador") {
     return [
-      { href: "/profissional/dashboard", label: "Dashboard" },
-      { href: "/profissional/agenda", label: "Agenda" },
-      { href: "/profissional/disponibilidade", label: "Disponibilidade" }
-    ];
-  }
-
-  if (sessao.perfil === "PRESTADOR_PJ") {
-    return [
-      { href: "/barbearia/dashboard", label: "Dashboard" },
-      { href: "/barbearia/barbeiros", label: "Barbeiros" },
-      { href: "/barbearia/servicos", label: "Serviços" }
+      { href: "/dashboard", label: "Meu Dashboard" },
+      { href: "/agenda", label: "Gerenciar Agenda" },
+      { href: "/perfil", label: "Perfil do Prestador" }
     ];
   }
 
   return [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/usuarios", label: "Usuários" },
-    { href: "/admin/agendamentos", label: "Agendamentos" }
+    { href: "/admin", label: "Painel Admin" },
+    { href: "/perfil", label: "Perfil" }
   ];
 }
 
@@ -53,7 +45,7 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
           <Link className="font-serif text-3xl font-bold tracking-tight text-verde_petroleo" href="/">
             BarberGo
           </Link>
-          <p className="mt-1 text-sm text-texto_secundario">Marketplace de barbearias premium</p>
+          <p className="mt-1 text-sm text-texto_secundario">Conectando você aos melhores profissionais</p>
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -73,7 +65,7 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="rounded-lg border border-bege_borda bg-off_white px-4 py-3 text-sm text-texto_principal shadow-suave">
                 <p className="font-semibold text-verde_petroleo">{sessao.nome}</p>
-                <p className="text-xs text-texto_secundario">{rotulosPerfil[sessao.perfil]}</p>
+                <p className="text-xs text-texto_secundario">{rotulosTipoUsuario[sessao.tipo]}</p>
               </div>
               <BotaoLogout />
             </div>

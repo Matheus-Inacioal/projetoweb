@@ -1,10 +1,8 @@
 import { format } from "date-fns";
-import type { DiaSemana } from "@/tipos/enums";
-
-const mapaDiaSemana: DiaSemana[] = ["DOMINGO", "SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO"];
 
 export function obterDiaSemanaPorData(data: Date) {
-  return mapaDiaSemana[data.getDay()];
+  const dias = ["DOMINGO", "SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO"];
+  return dias[data.getDay()];
 }
 
 export function criarDataLocal(data: string | Date) {

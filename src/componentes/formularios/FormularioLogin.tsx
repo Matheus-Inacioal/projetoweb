@@ -1,72 +1,58 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useMutacao } from "@/hooks/useMutacao";
 import { CampoTexto } from "@/componentes/ui/CampoTexto";
 import { Botao } from "@/componentes/ui/Botao";
 import { MensagemRetorno } from "@/componentes/feedback/MensagemRetorno";
-import { useMutacao } from "@/hooks/useMutacao";
-import type { SessaoUsuario, UsuarioResumo } from "@/tipos/dados";
-
-interface RespostaLogin {
-  usuario: UsuarioResumo;
-  sessao: SessaoUsuario;
-}
-
-function obterRotaRedirecionamento(perfil: SessaoUsuario["perfil"]) {
-  if (perfil === "PRESTADOR_PF") {
-    return "/profissional/dashboard";
-  }
-
-  if (perfil === "PRESTADOR_PJ") {
-    return "/barbearia/dashboard";
-  }
-
-  if (perfil === "ADMIN") {
-    return "/admin";
-  }
-
-  return "/";
-}
 
 export function FormularioLogin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const { executar, carregando, erro } = useMutacao<RespostaLogin, { email: string; senha: string }>(
-    "/api/autenticacao/login"
-  );
 
-  async function fazerLogin(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    const resposta = await executar({ email, senha });
-    router.push(obterRotaRedirecionamento(resposta.sessao.perfil));
-    router.refresh();
+  const { executar, carregando, erro } = useMutacao<any, any>("/api/autenticacao/login", "POST");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !senha) return;
+
+    try {
+      await executar({ email, senha });
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      // erro é tratado automaticamente pelo hook
+    }
   }
 
   return (
-    <form className="cartao space-y-4 p-6" onSubmit={(evento) => void fazerLogin(evento)}>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {erro && <MensagemRetorno tipo="erro" mensagem={erro} />}
+
       <CampoTexto
-        autoComplete="email"
         label="E-mail"
-        onChange={(evento) => setEmail(evento.target.value)}
-        placeholder="voce@barbergo.com"
+        id="email"
         type="email"
+        placeholder="seu-email@barbergo.com"
         value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
       />
+
       <CampoTexto
-        autoComplete="current-password"
         label="Senha"
-        onChange={(evento) => setSenha(evento.target.value)}
-        placeholder="Digite sua senha"
+        id="senha"
         type="password"
+        placeholder="••••••••"
         value={senha}
+        onChange={(e) => setSenha(e.target.value)}
+        required
       />
 
-      {erro ? <MensagemRetorno mensagem={erro} tipo="erro" /> : null}
-
-      <Botao disabled={carregando} larguraTotal type="submit">
-        {carregando ? "Entrando..." : "Entrar na plataforma"}
+      <Botao type="submit" larguraTotal disabled={carregando}>
+        {carregando ? "Entrando..." : "Acessar conta"}
       </Botao>
     </form>
   );

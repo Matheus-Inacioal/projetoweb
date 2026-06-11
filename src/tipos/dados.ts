@@ -1,4 +1,4 @@
-import type { DiaSemana, PerfilUsuario, StatusAgendamento } from "@/tipos/enums";
+import type { TipoUsuario, StatusContratacao } from "@/tipos/enums";
 
 export interface RespostaApi<TDados> {
   sucesso: boolean;
@@ -10,155 +10,111 @@ export interface SessaoUsuario {
   usuarioId: string;
   nome: string;
   email: string;
-  perfil: PerfilUsuario;
+  tipo: TipoUsuario;
 }
 
 export interface UsuarioResumo {
   id: string;
   nome: string;
   email: string;
-  perfil: PerfilUsuario;
+  telefone: string | null;
+  fotoUrl: string | null;
+  tipo: TipoUsuario;
   criadoEm: string;
 }
 
-export interface BarbeariaResumo {
+export interface PrestadorResumo {
   id: string;
+  usuarioId: string;
   nome: string;
+  email: string;
+  telefone: string | null;
+  fotoUrl: string | null;
   descricao: string;
+  especialidade: string;
   endereco: string;
-  telefone: string;
-  bairro: string;
   cidade: string;
   avaliacaoMedia: number;
-  destaque: boolean;
-  imagem?: string | null;
+  ativo: boolean;
   criadoEm: string;
-  responsavelId: string;
-  responsavelNome: string;
-  quantidadeBarbeiros: number;
-  quantidadeServicos: number;
 }
 
-export interface BarbeiroResumo {
+export interface ConsumidorResumo {
   id: string;
+  usuarioId: string;
   nome: string;
-  especialidade: string;
-  descricao: string;
-  telefone: string;
-  ativo: boolean;
-  usuarioId?: string | null;
-  barbeariaId?: string | null;
-  barbeariaNome?: string | null;
+  email: string;
+  telefone: string | null;
+  fotoUrl: string | null;
   criadoEm: string;
 }
 
 export interface ServicoResumo {
   id: string;
+  prestadorId: string;
   nome: string;
   descricao: string;
   preco: number;
   duracaoMinutos: number;
   ativo: boolean;
-  barbeariaId: string;
+  criadoEm: string;
 }
 
-export interface DisponibilidadeResumo {
+export interface AgendaResumo {
   id: string;
-  barbeiroId: string;
-  diaSemana: DiaSemana;
+  prestadorId: string;
+  data: string;
   horaInicio: string;
   horaFim: string;
-}
-
-export interface AvaliacaoResumo {
-  nota: number;
-  comentario: string | null;
+  disponivel: boolean;
   criadoEm: string;
 }
 
-export interface AgendamentoDetalhado {
+export interface ContratacaoDetalhada {
   id: string;
-  contratanteId: string;
-  contratanteNome: string;
-  barbeariaId: string;
-  barbeariaNome: string;
-  barbeiroId: string;
-  barbeiroNome: string;
-  servicoId: string;
-  servicoNome: string;
-  precoServico: number;
-  duracaoMinutos: number;
+  consumidorId: string;
+  consumidorNome: string;
+  consumidorEmail: string;
+  prestadorId: string;
+  prestadorNome: string;
+  prestadorEspecialidade: string;
+  agendaId: string | null;
+  servicoId: string | null;
+  servicoNome: string | null;
   data: string;
-  hora: string;
-  status: StatusAgendamento;
+  horario: string;
+  valor: number;
+  status: StatusContratacao;
   observacao: string | null;
   criadoEm: string;
-  avaliacao: AvaliacaoResumo | null;
-}
-
-export interface ProximaDisponibilidadeResumo {
-  data: string;
-  hora: string;
-}
-
-export interface HorariosDisponiveisResumo {
-  data: string;
-  barbeiroId: string;
-  servicoId: string;
-  duracaoServicoMinutos: number;
-  gapMinutos: number;
-  horariosDisponiveis: string[];
-  primeiroHorarioDisponivel: string | null;
-  semHorariosDisponiveis: boolean;
-  proximaDisponibilidade: ProximaDisponibilidadeResumo | null;
-}
-
-export interface BarbeariaDetalhada extends BarbeariaResumo {
-  barbeiros: BarbeiroResumo[];
-  servicos: ServicoResumo[];
-}
-
-export interface PerfilContratante {
-  usuario: UsuarioResumo;
-  proximosAgendamentos: AgendamentoDetalhado[];
-  historicoAgendamentos: AgendamentoDetalhado[];
-}
-
-export interface PerfilProfissional {
-  usuario: UsuarioResumo;
-  barbeiro: BarbeiroResumo | null;
-  disponibilidades: DisponibilidadeResumo[];
-  agendaHoje: AgendamentoDetalhado[];
-}
-
-export interface PerfilBarbearia {
-  usuario: UsuarioResumo;
-  barbearia: BarbeariaResumo | null;
-  barbeiros: BarbeiroResumo[];
-  servicos: ServicoResumo[];
-  agendaHoje: AgendamentoDetalhado[];
-}
-
-export interface ResumoPainelAdmin {
-  totalUsuarios: number;
-  totalBarbearias: number;
-  totalAgendamentos: number;
-  agendamentosPendentes: number;
-  agendamentosConfirmados: number;
 }
 
 export interface FavoritoResumo {
   id: string;
-  usuarioId: string;
-  barbeariaId: string;
-  barbeariaNome: string;
+  consumidorId: string;
+  prestadorId: string;
+  prestadorNome: string;
+  prestadorEspecialidade: string;
+  prestadorFotoUrl: string | null;
   criadoEm: string;
 }
 
-export interface FotoResumo {
+export interface AnuncioResumo {
   id: string;
-  barbeariaId: string;
-  url: string;
-  descricao: string | null;
+  prestadorId: string;
+  prestadorNome: string;
+  prestadorFotoUrl: string | null;
+  titulo: string;
+  descricao: string;
+  imagemUrl: string | null;
+  ativo: boolean;
   criadoEm: string;
+}
+
+export interface ResumoPainelAdmin {
+  totalUsuarios: number;
+  totalPrestadores: number;
+  totalConsumidores: number;
+  totalContratacoes: number;
+  totalAnuncios: number;
 }

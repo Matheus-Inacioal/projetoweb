@@ -9,12 +9,12 @@ export const metadata: Metadata = {
   description: "Marketplace acadêmico de agendamento para barbearias."
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const sessao = obterSessaoAtual();
+  const sessao = await obterSessaoAtual();
 
   return (
     <html lang="pt-BR">

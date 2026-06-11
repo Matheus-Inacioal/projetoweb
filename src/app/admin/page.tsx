@@ -1,43 +1,20 @@
-"use client";
+import { exigirSessao } from "@/lib/autenticacao/guardas";
+import { PainelAdmin } from "@/componentes/admin/PainelAdmin";
 
-import { EstadoCarregando } from "@/componentes/feedback/EstadoCarregando";
-import { EstadoErro } from "@/componentes/feedback/EstadoErro";
-import { EstadoVazio } from "@/componentes/feedback/EstadoVazio";
-import { CabecalhoPagina } from "@/componentes/ui/CabecalhoPagina";
-import { CartaoMetrica } from "@/componentes/ui/CartaoMetrica";
-import { useResumoAdmin } from "@/hooks/useAdmin";
+export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
-  const { dados, carregando, erro, recarregar } = useResumoAdmin();
-
-  if (carregando) {
-    return <EstadoCarregando texto="Carregando indicadores administrativos..." />;
-  }
-
-  if (erro) {
-    return <EstadoErro mensagem={erro} onTentarNovamente={() => void recarregar()} />;
-  }
-
-  if (!dados) {
-    return <EstadoVazio descricao="Nao foi possivel carregar os indicadores." titulo="Resumo indisponivel" />;
-  }
+export default async function AdminPage() {
+  await exigirSessao(["admin"]);
 
   return (
-    <div className="space-y-6">
-      <CabecalhoPagina
-        descricao="Painel administrativo basico para acompanhar usuarios, barbearias e agendamentos do BarberGo."
-        subtitulo="Administracao"
-        titulo="Dashboard administrativo"
-      />
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <CartaoMetrica titulo="Usuarios" valor={dados.totalUsuarios} />
-        <CartaoMetrica titulo="Barbearias" valor={dados.totalBarbearias} />
-        <CartaoMetrica titulo="Agendamentos" valor={dados.totalAgendamentos} />
-        <CartaoMetrica titulo="Pendentes" valor={dados.agendamentosPendentes} />
-        <CartaoMetrica titulo="Confirmados" valor={dados.agendamentosConfirmados} />
+    <div className="container-pagina py-12 space-y-8">
+      <div>
+        <p className="texto-destaque mb-2">PAINEL ADMINISTRATIVO</p>
+        <h1 className="text-4xl font-serif font-bold text-verde_petroleo">Visão Geral</h1>
+        <p className="text-texto_secundario">Monitore os principais indicadores de atividade do BarberGo.</p>
       </div>
+
+      <PainelAdmin />
     </div>
   );
 }
-

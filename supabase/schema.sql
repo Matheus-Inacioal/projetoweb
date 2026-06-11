@@ -1,174 +1,188 @@
 -- ============================================================
 -- BarberGo — Schema PostgreSQL para Supabase
--- Execute este script no SQL Editor do Supabase Dashboard
+-- Execute no SQL Editor do Supabase Dashboard
 -- ============================================================
 
--- Habilitar extensão uuid (já habilitada no Supabase por padrão)
 create extension if not exists "uuid-ossp";
 
 -- ============================================================
--- 1. PROFILES (vinculada a auth.users)
+-- 1. USUARIOS (vinculada a auth.users)
 -- ============================================================
-create table if not exists profiles (
-  id         uuid primary key references auth.users(id) on delete cascade,
-  nome       text not null,
-  email      text not null unique,
-  perfil     text not null check (perfil in ('CONTRATANTE', 'PRESTADOR_PF', 'PRESTADOR_PJ', 'ADMIN')),
-  avatar_url text,
-  criado_em  timestamptz not null default now()
+create table if not exists usuarios (
+  id           uuid primary key references auth.users(id) on delete cascade,
+  nome         text not null,
+  email        text not null unique,
+  telefone     text,
+  foto_url     text,
+  tipo         text not null check (tipo in ('prestador', 'consumidor', 'admin')),
+  criado_em    timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
 );
 
--- Trigger para criar profile automaticamente ao signup
+-- Trigger para criar perfil automaticamente ao signup
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, nome, email, perfil)
+  insert into public.usuarios (id, nome, email, telefone, tipo)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'nome', ''),
     new.email,
-    coalesce(new.raw_user_meta_data->>'perfil', 'CONTRATANTE')
+    coalesce(new.raw_user_meta_data->>'telefone', ''),
+    coalesce(new.raw_user_meta_data->>'tipo', 'consumidor')
   );
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Remover trigger existente se houver
 drop trigger if exists on_auth_user_created on auth.users;
-
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- ============================================================
--- 2. BARBEARIAS
--- ============================================================
-create table if not exists barbearias (
-  id              uuid primary key default uuid_generate_v4(),
-  nome            text not null,
-  descricao       text not null,
-  endereco        text not null,
-  telefone        text not null,
-  bairro          text not null default '',
-  cidade          text not null default '',
-  imagem          text,
-  avaliacao_media real not null default 0,
-  destaque        boolean not null default false,
-  responsavel_id  uuid not null references profiles(id) on delete restrict,
-  criado_em       timestamptz not null default now()
-);
+-- Trigger para atualizar atualizado_em
+create or replace function public.handle_updated_at()
+returns trigger as $$
+begin
+  new.atualizado_em = now();
+  return new;
+end;
+$$ language plpgsql;
 
-create index if not exists idx_barbearias_responsavel on barbearias(responsavel_id);
+create trigger on_usuarios_updated
+  before update on usuarios
+  for each row execute procedure public.handle_updated_at();
 
 -- ============================================================
--- 3. BARBEIROS
+-- 2. PRESTADORES
 -- ============================================================
-create table if not exists barbeiros (
+create table if not exists prestadores (
   id             uuid primary key default uuid_generate_v4(),
-  nome           text not null,
-  especialidade  text not null,
-  descricao      text not null,
-  telefone       text not null,
+  usuario_id     uuid not null unique references usuarios(id) on delete cascade,
+  descricao      text not null default '',
+  especialidade  text not null default '',
+  endereco       text not null default '',
+  cidade         text not null default '',
+  avaliacao_media real not null default 0,
   ativo          boolean not null default true,
-  usuario_id     uuid unique references profiles(id) on delete set null,
-  barbearia_id   uuid references barbearias(id) on delete set null,
-  criado_em      timestamptz not null default now()
+  criado_em      timestamptz not null default now(),
+  atualizado_em  timestamptz not null default now()
 );
 
-create index if not exists idx_barbeiros_barbearia on barbeiros(barbearia_id);
+create index if not exists idx_prestadores_usuario on prestadores(usuario_id);
+create index if not exists idx_prestadores_cidade on prestadores(cidade);
+
+create trigger on_prestadores_updated
+  before update on prestadores
+  for each row execute procedure public.handle_updated_at();
+
+-- ============================================================
+-- 3. CONSUMIDORES
+-- ============================================================
+create table if not exists consumidores (
+  id           uuid primary key default uuid_generate_v4(),
+  usuario_id   uuid not null unique references usuarios(id) on delete cascade,
+  criado_em    timestamptz not null default now()
+);
+
+create index if not exists idx_consumidores_usuario on consumidores(usuario_id);
 
 -- ============================================================
 -- 4. SERVICOS
 -- ============================================================
 create table if not exists servicos (
   id              uuid primary key default uuid_generate_v4(),
+  prestador_id    uuid not null references prestadores(id) on delete cascade,
   nome            text not null,
-  descricao       text not null,
+  descricao       text not null default '',
   preco           real not null,
-  duracao_minutos integer not null,
+  duracao_minutos integer not null default 30,
   ativo           boolean not null default true,
-  barbearia_id    uuid not null references barbearias(id) on delete cascade,
   criado_em       timestamptz not null default now()
 );
 
-create index if not exists idx_servicos_barbearia on servicos(barbearia_id);
+create index if not exists idx_servicos_prestador on servicos(prestador_id);
 
 -- ============================================================
--- 5. DISPONIBILIDADES
+-- 5. AGENDA
 -- ============================================================
-create table if not exists disponibilidades (
-  id          uuid primary key default uuid_generate_v4(),
-  barbeiro_id uuid not null references barbeiros(id) on delete cascade,
-  dia_semana  text not null check (dia_semana in ('DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO')),
-  hora_inicio text not null,
-  hora_fim    text not null
+create table if not exists agenda (
+  id            uuid primary key default uuid_generate_v4(),
+  prestador_id  uuid not null references prestadores(id) on delete cascade,
+  data          date not null,
+  hora_inicio   text not null,
+  hora_fim      text not null,
+  disponivel    boolean not null default true,
+  criado_em     timestamptz not null default now(),
+
+  unique (prestador_id, data, hora_inicio)
 );
 
-create index if not exists idx_disponibilidades_barbeiro_dia on disponibilidades(barbeiro_id, dia_semana);
+create index if not exists idx_agenda_prestador_data on agenda(prestador_id, data);
 
 -- ============================================================
--- 6. AGENDAMENTOS
+-- 6. CONTRATACOES
 -- ============================================================
-create table if not exists agendamentos (
+create table if not exists contratacoes (
   id              uuid primary key default uuid_generate_v4(),
-  contratante_id  uuid not null references profiles(id) on delete restrict,
-  barbearia_id    uuid not null references barbearias(id) on delete restrict,
-  barbeiro_id     uuid not null references barbeiros(id) on delete restrict,
-  servico_id      uuid not null references servicos(id) on delete restrict,
+  consumidor_id   uuid not null references usuarios(id) on delete restrict,
+  prestador_id    uuid not null references prestadores(id) on delete restrict,
+  agenda_id       uuid references agenda(id) on delete set null,
+  servico_id      uuid references servicos(id) on delete set null,
   data            date not null,
-  hora            text not null,
+  horario         text not null,
+  valor           real not null default 0,
   status          text not null default 'PENDENTE' check (status in ('PENDENTE','CONFIRMADO','CONCLUIDO','CANCELADO')),
   observacao      text,
   criado_em       timestamptz not null default now(),
-
-  unique (barbeiro_id, data, hora)
+  atualizado_em   timestamptz not null default now()
 );
 
-create index if not exists idx_agendamentos_contratante_data on agendamentos(contratante_id, data);
-create index if not exists idx_agendamentos_barbearia_data on agendamentos(barbearia_id, data);
-create index if not exists idx_agendamentos_barbeiro_data on agendamentos(barbeiro_id, data);
+create index if not exists idx_contratacoes_consumidor on contratacoes(consumidor_id);
+create index if not exists idx_contratacoes_prestador on contratacoes(prestador_id);
+create index if not exists idx_contratacoes_data on contratacoes(data);
+
+create trigger on_contratacoes_updated
+  before update on contratacoes
+  for each row execute procedure public.handle_updated_at();
 
 -- ============================================================
--- 7. AVALIACOES
--- ============================================================
-create table if not exists avaliacoes (
-  id              uuid primary key default uuid_generate_v4(),
-  agendamento_id  uuid not null unique references agendamentos(id) on delete cascade,
-  nota            integer not null check (nota >= 1 and nota <= 5),
-  comentario      text,
-  criado_em       timestamptz not null default now()
-);
-
--- ============================================================
--- 8. FAVORITOS (nova tabela)
+-- 7. FAVORITOS
 -- ============================================================
 create table if not exists favoritos (
   id            uuid primary key default uuid_generate_v4(),
-  usuario_id    uuid not null references profiles(id) on delete cascade,
-  barbearia_id  uuid not null references barbearias(id) on delete cascade,
+  consumidor_id uuid not null references usuarios(id) on delete cascade,
+  prestador_id  uuid not null references prestadores(id) on delete cascade,
   criado_em     timestamptz not null default now(),
 
-  unique (usuario_id, barbearia_id)
+  unique (consumidor_id, prestador_id)
 );
 
-create index if not exists idx_favoritos_usuario on favoritos(usuario_id);
+create index if not exists idx_favoritos_consumidor on favoritos(consumidor_id);
 
 -- ============================================================
--- 9. FOTOS (nova tabela)
+-- 8. ANUNCIOS
 -- ============================================================
-create table if not exists fotos (
+create table if not exists anuncios (
   id            uuid primary key default uuid_generate_v4(),
-  barbearia_id  uuid not null references barbearias(id) on delete cascade,
-  url           text not null,
-  descricao     text,
-  criado_em     timestamptz not null default now()
+  prestador_id  uuid not null references prestadores(id) on delete cascade,
+  titulo        text not null,
+  descricao     text not null default '',
+  imagem_url    text,
+  ativo         boolean not null default true,
+  criado_em     timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
 );
 
-create index if not exists idx_fotos_barbearia on fotos(barbearia_id);
+create index if not exists idx_anuncios_prestador on anuncios(prestador_id);
+
+create trigger on_anuncios_updated
+  before update on anuncios
+  for each row execute procedure public.handle_updated_at();
 
 -- ============================================================
--- 10. STORAGE BUCKET para fotos
+-- 9. STORAGE BUCKET
 -- ============================================================
 insert into storage.buckets (id, name, public)
-values ('fotos', 'fotos', true)
+values ('perfis', 'perfis', true)
 on conflict (id) do nothing;

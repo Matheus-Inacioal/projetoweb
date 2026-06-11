@@ -27,8 +27,59 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh da sessão — essencial para manter tokens válidos
-  await supabase.auth.getUser();
+  // Refresh da sessão
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+
+  // Rotas protegidas gerais
+  const rotasProtegidas = [
+    "/dashboard",
+    "/perfil",
+    "/agenda",
+    "/favoritos",
+    "/contratacoes",
+    "/admin"
+  ];
+
+  const ehRotaProtegida = rotasProtegidas.some((rota) => path.startsWith(rota));
+
+  // Redirecionamento se não estiver autenticado
+  if (!user && ehRotaProtegida) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirecionamento se estiver autenticado e tentar acessar login/cadastro
+  if (user && (path.startsWith("/login") || path.startsWith("/cadastro"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Proteção de rotas específicas baseadas no tipo de usuário (tipo no metadata)
+  if (user) {
+    const tipo = user.user_metadata?.tipo;
+
+    if (path.startsWith("/admin") && tipo !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    if (path.startsWith("/agenda") && tipo !== "prestador") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    if (path.startsWith("/favoritos") && tipo !== "consumidor") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
 
   return supabaseResponse;
 }

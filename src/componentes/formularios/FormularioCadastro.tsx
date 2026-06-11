@@ -1,68 +1,97 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { CampoSelecao } from "@/componentes/ui/CampoSelecao";
+import { useMutacao } from "@/hooks/useMutacao";
 import { CampoTexto } from "@/componentes/ui/CampoTexto";
+import { CampoSelecao } from "@/componentes/ui/CampoSelecao";
 import { Botao } from "@/componentes/ui/Botao";
 import { MensagemRetorno } from "@/componentes/feedback/MensagemRetorno";
-import { useMutacao } from "@/hooks/useMutacao";
-import { PERFIS_CADASTRAVEIS, rotulosPerfil, type PerfilCadastro } from "@/tipos/enums";
-import type { SessaoUsuario, UsuarioResumo } from "@/tipos/dados";
-
-interface RespostaCadastro {
-  usuario: UsuarioResumo;
-  sessao: SessaoUsuario;
-}
-
-function obterRotaRedirecionamento(perfil: SessaoUsuario["perfil"]) {
-  if (perfil === "PRESTADOR_PF") {
-    return "/profissional/dashboard";
-  }
-
-  if (perfil === "PRESTADOR_PJ") {
-    return "/barbearia/dashboard";
-  }
-
-  return "/";
-}
 
 export function FormularioCadastro() {
   const router = useRouter();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
-  const [perfil, setPerfil] = useState<PerfilCadastro>("CONTRATANTE");
-  const { executar, carregando, erro } = useMutacao<
-    RespostaCadastro,
-    { nome: string; email: string; senha: string; perfil: PerfilCadastro }
-  >("/api/autenticacao/cadastro");
+  const [tipo, setTipo] = useState("consumidor");
 
-  async function cadastrar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    const resposta = await executar({ nome, email, senha, perfil });
-    router.push(obterRotaRedirecionamento(resposta.sessao.perfil));
-    router.refresh();
+  const { executar, carregando, erro } = useMutacao<any, any>("/api/autenticacao/cadastro", "POST");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nome || !email || !senha) return;
+
+    try {
+      await executar({
+        nome,
+        email,
+        telefone,
+        senha,
+        tipo
+      });
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      // erro é tratado automaticamente pelo hook
+    }
   }
 
   return (
-    <form className="cartao space-y-4 p-6" onSubmit={(evento) => void cadastrar(evento)}>
-      <CampoTexto label="Nome completo" onChange={(evento) => setNome(evento.target.value)} value={nome} />
-      <CampoTexto label="E-mail" onChange={(evento) => setEmail(evento.target.value)} type="email" value={email} />
-      <CampoTexto label="Senha" onChange={(evento) => setSenha(evento.target.value)} type="password" value={senha} />
-      <CampoSelecao
-        label="Perfil"
-        onChange={(evento) => setPerfil(evento.target.value as PerfilCadastro)}
-        opcoes={PERFIS_CADASTRAVEIS.map((perfilAtual) => ({
-          valor: perfilAtual,
-          label: rotulosPerfil[perfilAtual]
-        }))}
-        value={perfil}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {erro && <MensagemRetorno tipo="erro" mensagem={erro} />}
+
+      <CampoTexto
+        label="Nome completo"
+        id="nome"
+        type="text"
+        placeholder="Seu nome"
+        value={nome}
+        onChange={(e) => setNome(e.target.value)}
+        required
       />
 
-      {erro ? <MensagemRetorno mensagem={erro} tipo="erro" /> : null}
+      <CampoTexto
+        label="E-mail"
+        id="email"
+        type="email"
+        placeholder="seu-email@barbergo.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
 
-      <Botao disabled={carregando} larguraTotal type="submit">
+      <CampoTexto
+        label="Telefone"
+        id="telefone"
+        type="tel"
+        placeholder="(99) 99999-9999"
+        value={telefone}
+        onChange={(e) => setTelefone(e.target.value)}
+      />
+
+      <CampoTexto
+        label="Senha"
+        id="senha"
+        type="password"
+        placeholder="Mínimo 6 caracteres"
+        value={senha}
+        onChange={(e) => setSenha(e.target.value)}
+        required
+      />
+
+      <CampoSelecao
+        label="Tipo de Conta"
+        id="tipo"
+        value={tipo}
+        onChange={(e) => setTipo(e.target.value)}
+        opcoes={[
+          { valor: "consumidor", label: "Consumidor (Cliente)" },
+          { valor: "prestador", label: "Prestador (Barbeiro)" }
+        ]}
+      />
+
+      <Botao type="submit" larguraTotal disabled={carregando}>
         {carregando ? "Criando conta..." : "Criar conta"}
       </Botao>
     </form>
