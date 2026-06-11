@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const sessao = obterSessaoObrigatoriaApi();
+    const sessao = await obterSessaoObrigatoriaApi();
 
     if (sessao.perfil === "CONTRATANTE") {
       const listaAgendamentos = await agendamentoServico.listarAgendamentosDoContratante(sessao.usuarioId);
@@ -33,7 +33,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const sessao = obterSessaoObrigatoriaApi(["CONTRATANTE"]);
+    const sessao = await obterSessaoObrigatoriaApi(["CONTRATANTE"]);
     const corpoRequisicao = await request.json();
     const agendamento = await agendamentoServico.criarAgendamento(sessao.usuarioId, corpoRequisicao);
     return responderSucesso(agendamento, "Agendamento criado com sucesso.", 201);

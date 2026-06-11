@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
 import { usuarioRepositorio } from "@/lib/repositorios/usuario-repositorio";
-import { ErroAplicacao, garantirCondicao } from "@/lib/utilitarios/erro-aplicacao";
+import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
 import { mapearUsuarioResumo } from "@/lib/utilitarios/mapeadores";
 import { esquemaCadastroUsuario, esquemaLoginUsuario } from "@/lib/validacoes/autenticacao-validacoes";
 import type { SessaoUsuario } from "@/tipos/dados";
@@ -19,42 +19,78 @@ export const autenticacaoServico = {
   async cadastrarUsuario(entrada: unknown) {
     const dadosValidados = esquemaCadastroUsuario.parse(entrada);
     const emailNormalizado = dadosValidados.email.trim().toLowerCase();
+
+    // Verificar se já existe um perfil com este email
     const usuarioExistente = await usuarioRepositorio.obterUsuarioPorEmail(emailNormalizado);
 
-    garantirCondicao(!usuarioExistente, "Ja existe um usuario cadastrado com este e-mail.", 409);
+    if (usuarioExistente) {
+      throw new ErroAplicacao("Ja existe um usuario cadastrado com este e-mail.", 409);
+    }
 
-    const senhaHash = await bcrypt.hash(dadosValidados.senha, 10);
-    const usuarioCriado = await usuarioRepositorio.criarUsuario({
-      nome: dadosValidados.nome.trim(),
+    // Criar usuário via Supabase Auth
+    const supabase = criarClienteSupabaseServidor();
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: emailNormalizado,
-      senhaHash,
-      perfil: dadosValidados.perfil
+      password: dadosValidados.senha,
+      options: {
+        data: {
+          nome: dadosValidados.nome.trim(),
+          perfil: dadosValidados.perfil
+        }
+      }
     });
 
+    if (authError || !authData.user) {
+      throw new ErroAplicacao(authError?.message ?? "Erro ao criar usuario.", 400);
+    }
+
+    // O trigger handle_new_user() cria o profile automaticamente.
+    // Aguardar um instante e buscar o perfil criado.
+    const perfil = await usuarioRepositorio.obterUsuarioPorId(authData.user.id);
+
+    if (!perfil) {
+      throw new ErroAplicacao("Erro ao criar perfil do usuario.", 500);
+    }
+
     return {
-      usuario: mapearUsuarioResumo(usuarioCriado),
-      sessao: criarDadosSessao(usuarioCriado)
+      usuario: mapearUsuarioResumo(perfil),
+      sessao: criarDadosSessao({
+        id: perfil.id,
+        nome: perfil.nome,
+        email: perfil.email,
+        perfil: perfil.perfil
+      })
     };
   },
 
   async autenticarUsuario(entrada: unknown) {
     const dadosValidados = esquemaLoginUsuario.parse(entrada);
     const emailNormalizado = dadosValidados.email.trim().toLowerCase();
-    const usuario = await usuarioRepositorio.obterUsuarioPorEmail(emailNormalizado);
 
-    if (!usuario) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: emailNormalizado,
+      password: dadosValidados.senha
+    });
+
+    if (authError || !authData.user) {
       throw new ErroAplicacao("Credenciais invalidas.", 401);
     }
 
-    const senhaValida = await bcrypt.compare(dadosValidados.senha, usuario.senhaHash);
+    const perfil = await usuarioRepositorio.obterUsuarioPorId(authData.user.id);
 
-    if (!senhaValida) {
-      throw new ErroAplicacao("Credenciais invalidas.", 401);
+    if (!perfil) {
+      throw new ErroAplicacao("Perfil do usuario nao encontrado.", 404);
     }
 
     return {
-      usuario: mapearUsuarioResumo(usuario),
-      sessao: criarDadosSessao(usuario)
+      usuario: mapearUsuarioResumo(perfil),
+      sessao: criarDadosSessao({
+        id: perfil.id,
+        nome: perfil.nome,
+        email: perfil.email,
+        perfil: perfil.perfil
+      })
     };
   }
 };

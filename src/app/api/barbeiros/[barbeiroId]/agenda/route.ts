@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_request: Request, { params }: { params: { barbeiroId: string } }) {
   try {
-    const sessao = obterSessaoObrigatoriaApi(["PRESTADOR_PF", "PRESTADOR_PJ", "ADMIN"]);
+    const sessao = await obterSessaoObrigatoriaApi(["PRESTADOR_PF", "PRESTADOR_PJ", "ADMIN"]);
 
     if (sessao.perfil === "PRESTADOR_PF") {
       const perfilProfissional = await barbeiroServico.obterBarbeiroPorUsuarioId(sessao.usuarioId);

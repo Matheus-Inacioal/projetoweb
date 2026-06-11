@@ -1,53 +1,83 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/banco/prisma";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
+import type { BarbeariaComRelacoesDB } from "@/lib/utilitarios/mapeadores";
 
-const incluirRelacoesBarbearia = {
-  responsavel: true,
-  barbeiros: true,
-  servicos: true
-} satisfies Prisma.BarbeariaInclude;
+const SELECAO_BARBEARIA_COM_RELACOES = "*, responsavel:profiles!responsavel_id(*), barbeiros(*), servicos(*)";
 
 export const barbeariaRepositorio = {
-  listarBarbearias() {
-    return prisma.barbearia.findMany({
-      include: incluirRelacoesBarbearia,
-      orderBy: {
-        nome: "asc"
-      }
-    });
+  async listarBarbearias() {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbearias")
+      .select(SELECAO_BARBEARIA_COM_RELACOES)
+      .order("nome", { ascending: true });
+    return (data ?? []) as BarbeariaComRelacoesDB[];
   },
 
-  obterBarbeariaPorId(id: string) {
-    return prisma.barbearia.findUnique({
-      where: { id },
-      include: incluirRelacoesBarbearia
-    });
+  async obterBarbeariaPorId(id: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbearias")
+      .select(SELECAO_BARBEARIA_COM_RELACOES)
+      .eq("id", id)
+      .single();
+    return data as BarbeariaComRelacoesDB | null;
   },
 
-  obterBarbeariaPorResponsavelId(responsavelId: string) {
-    return prisma.barbearia.findFirst({
-      where: { responsavelId },
-      include: incluirRelacoesBarbearia
-    });
+  async obterBarbeariaPorResponsavelId(responsavelId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbearias")
+      .select(SELECAO_BARBEARIA_COM_RELACOES)
+      .eq("responsavel_id", responsavelId)
+      .limit(1)
+      .single();
+    return data as BarbeariaComRelacoesDB | null;
   },
 
-  criarBarbearia(dados: Prisma.BarbeariaUncheckedCreateInput) {
-    return prisma.barbearia.create({
-      data: dados,
-      include: incluirRelacoesBarbearia
-    });
+  async criarBarbearia(dados: {
+    nome: string;
+    descricao: string;
+    endereco: string;
+    telefone: string;
+    responsavel_id: string;
+    bairro?: string;
+    cidade?: string;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbearias")
+      .insert(dados)
+      .select(SELECAO_BARBEARIA_COM_RELACOES)
+      .single();
+    return data as BarbeariaComRelacoesDB;
   },
 
-  atualizarBarbearia(id: string, dados: Prisma.BarbeariaUpdateInput) {
-    return prisma.barbearia.update({
-      where: { id },
-      data: dados,
-      include: incluirRelacoesBarbearia
-    });
+  async atualizarBarbearia(id: string, dados: {
+    nome?: string;
+    descricao?: string;
+    endereco?: string;
+    telefone?: string;
+    bairro?: string;
+    cidade?: string;
+    imagem?: string;
+    avaliacao_media?: number;
+    destaque?: boolean;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbearias")
+      .update(dados)
+      .eq("id", id)
+      .select(SELECAO_BARBEARIA_COM_RELACOES)
+      .single();
+    return data as BarbeariaComRelacoesDB;
   },
 
-  contarBarbearias() {
-    return prisma.barbearia.count();
+  async contarBarbearias() {
+    const supabase = criarClienteSupabaseServidor();
+    const { count } = await supabase
+      .from("barbearias")
+      .select("*", { count: "exact", head: true });
+    return count ?? 0;
   }
 };
-

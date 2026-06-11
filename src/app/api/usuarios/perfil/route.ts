@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const sessao = obterSessaoObrigatoriaApi(["CONTRATANTE"]);
+    const sessao = await obterSessaoObrigatoriaApi(["CONTRATANTE"]);
     const perfil = await usuarioServico.obterPerfilContratante(sessao.usuarioId);
     return responderSucesso(perfil, "Perfil do contratante carregado com sucesso.");
   } catch (erro) {
@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const sessao = obterSessaoObrigatoriaApi(["CONTRATANTE"]);
+    const sessao = await obterSessaoObrigatoriaApi(["CONTRATANTE"]);
     const corpoRequisicao = await request.json();
     const perfilAtualizado = await usuarioServico.atualizarPerfilUsuario(sessao.usuarioId, corpoRequisicao);
     return responderSucesso(perfilAtualizado, "Perfil atualizado com sucesso.");

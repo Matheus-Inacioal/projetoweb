@@ -23,12 +23,12 @@ export const disponibilidadeServico = {
     const disponibilidadesExistentes = await disponibilidadeRepositorio.listarDisponibilidadesPorBarbeiro(barbeiroId);
 
     const existeConflito = disponibilidadesExistentes.some((disponibilidadeAtual) => {
-      if (disponibilidadeAtual.diaSemana !== dadosValidados.diaSemana) {
+      if (disponibilidadeAtual.dia_semana !== dadosValidados.diaSemana) {
         return false;
       }
 
-      const inicioExistente = converterHoraParaMinutos(disponibilidadeAtual.horaInicio);
-      const fimExistente = converterHoraParaMinutos(disponibilidadeAtual.horaFim);
+      const inicioExistente = converterHoraParaMinutos(disponibilidadeAtual.hora_inicio);
+      const fimExistente = converterHoraParaMinutos(disponibilidadeAtual.hora_fim);
 
       return horaInicioMinutos < fimExistente && horaFimMinutos > inicioExistente;
     });
@@ -36,10 +36,10 @@ export const disponibilidadeServico = {
     garantirCondicao(!existeConflito, "Ja existe uma disponibilidade cadastrada para este intervalo.");
 
     const disponibilidadeCriada = await disponibilidadeRepositorio.criarDisponibilidade({
-      barbeiroId,
-      diaSemana: dadosValidados.diaSemana,
-      horaInicio: dadosValidados.horaInicio,
-      horaFim: dadosValidados.horaFim
+      barbeiro_id: barbeiroId,
+      dia_semana: dadosValidados.diaSemana,
+      hora_inicio: dadosValidados.horaInicio,
+      hora_fim: dadosValidados.horaFim
     });
 
     return mapearDisponibilidadeResumo(disponibilidadeCriada);

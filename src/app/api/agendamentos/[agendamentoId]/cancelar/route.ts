@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function PATCH(_request: Request, { params }: { params: { agendamentoId: string } }) {
   try {
-    const sessao = obterSessaoObrigatoriaApi();
+    const sessao = await obterSessaoObrigatoriaApi();
     const agendamento = await agendamentoServico.cancelarAgendamento(
       params.agendamentoId,
       sessao.usuarioId,

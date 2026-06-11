@@ -18,9 +18,9 @@ export const servicoServico = {
       nome: dadosValidados.nome.trim(),
       descricao: dadosValidados.descricao.trim(),
       preco: dadosValidados.preco,
-      duracaoMinutos: dadosValidados.duracaoMinutos,
+      duracao_minutos: dadosValidados.duracaoMinutos,
       ativo: dadosValidados.ativo ?? true,
-      barbeariaId
+      barbearia_id: barbeariaId
     });
 
     return mapearServicoResumo(servicoCriado);

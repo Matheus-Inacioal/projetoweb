@@ -21,7 +21,7 @@ export const barbeiroServico = {
     const barbeiro = garantirExistencia(await barbeiroRepositorio.obterBarbeiroPorId(barbeiroId), "Barbeiro nao encontrado.", 404);
     return {
       barbeiro: mapearBarbeiroResumo(barbeiro),
-      disponibilidades: barbeiro.disponibilidades.map(mapearDisponibilidadeResumo)
+      disponibilidades: (barbeiro.disponibilidades ?? []).map(mapearDisponibilidadeResumo)
     };
   },
 
@@ -47,7 +47,7 @@ export const barbeiroServico = {
     return {
       usuario: mapearUsuarioResumo(usuarioAtual),
       barbeiro: mapearBarbeiroResumo(barbeiro),
-      disponibilidades: barbeiro.disponibilidades.map(mapearDisponibilidadeResumo),
+      disponibilidades: (barbeiro.disponibilidades ?? []).map(mapearDisponibilidadeResumo),
       agendaHoje: agendaHoje.map(mapearAgendamentoDetalhado)
     };
   },
@@ -63,13 +63,13 @@ export const barbeiroServico = {
         descricao: dadosValidados.descricao.trim(),
         telefone: dadosValidados.telefone.trim(),
         ativo: dadosValidados.ativo ?? true,
-        usuarioId,
-        barbeariaId: dadosValidados.barbeariaId ?? null
+        usuario_id: usuarioId,
+        barbearia_id: dadosValidados.barbeariaId ?? null
       });
 
       return {
         barbeiro: mapearBarbeiroResumo(barbeiroCriado),
-        disponibilidades: barbeiroCriado.disponibilidades.map(mapearDisponibilidadeResumo)
+        disponibilidades: (barbeiroCriado.disponibilidades ?? []).map(mapearDisponibilidadeResumo)
       };
     }
 
@@ -83,7 +83,7 @@ export const barbeiroServico = {
 
     return {
       barbeiro: mapearBarbeiroResumo(barbeiroAtualizado),
-      disponibilidades: barbeiroAtualizado.disponibilidades.map(mapearDisponibilidadeResumo)
+      disponibilidades: (barbeiroAtualizado.disponibilidades ?? []).map(mapearDisponibilidadeResumo)
     };
   },
 
@@ -97,12 +97,12 @@ export const barbeiroServico = {
       descricao: dadosValidados.descricao.trim(),
       telefone: dadosValidados.telefone.trim(),
       ativo: dadosValidados.ativo ?? true,
-      barbeariaId
+      barbearia_id: barbeariaId
     });
 
     return {
       barbeiro: mapearBarbeiroResumo(barbeiroCriado),
-      disponibilidades: barbeiroCriado.disponibilidades.map(mapearDisponibilidadeResumo)
+      disponibilidades: (barbeiroCriado.disponibilidades ?? []).map(mapearDisponibilidadeResumo)
     };
   },
 
@@ -111,7 +111,7 @@ export const barbeiroServico = {
     return barbeiro
       ? {
           barbeiro: mapearBarbeiroResumo(barbeiro),
-          disponibilidades: barbeiro.disponibilidades.map(mapearDisponibilidadeResumo)
+          disponibilidades: (barbeiro.disponibilidades ?? []).map(mapearDisponibilidadeResumo)
         }
       : null;
   }

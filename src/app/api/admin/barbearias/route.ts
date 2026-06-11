@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    obterSessaoObrigatoriaApi(["ADMIN"]);
+    await obterSessaoObrigatoriaApi(["ADMIN"]);
     const barbearias = await adminServico.listarBarbearias();
     return responderSucesso(barbearias, "Barbearias carregadas com sucesso.");
   } catch (erro) {

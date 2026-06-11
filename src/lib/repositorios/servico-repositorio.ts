@@ -1,35 +1,58 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/banco/prisma";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
+import type { ServicoDB } from "@/lib/utilitarios/mapeadores";
 
 export const servicoRepositorio = {
-  listarServicosPorBarbearia(barbeariaId: string) {
-    return prisma.servico.findMany({
-      where: {
-        barbeariaId
-      },
-      orderBy: {
-        nome: "asc"
-      }
-    });
+  async listarServicosPorBarbearia(barbeariaId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("servicos")
+      .select("*")
+      .eq("barbearia_id", barbeariaId)
+      .order("nome", { ascending: true });
+    return (data ?? []) as ServicoDB[];
   },
 
-  obterServicoPorId(id: string) {
-    return prisma.servico.findUnique({
-      where: { id }
-    });
+  async obterServicoPorId(id: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("servicos")
+      .select("*")
+      .eq("id", id)
+      .single();
+    return data as ServicoDB | null;
   },
 
-  criarServico(dados: Prisma.ServicoUncheckedCreateInput) {
-    return prisma.servico.create({
-      data: dados
-    });
+  async criarServico(dados: {
+    nome: string;
+    descricao: string;
+    preco: number;
+    duracao_minutos: number;
+    ativo?: boolean;
+    barbearia_id: string;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("servicos")
+      .insert({ ativo: true, ...dados })
+      .select("*")
+      .single();
+    return data as ServicoDB;
   },
 
-  atualizarServico(id: string, dados: Prisma.ServicoUpdateInput) {
-    return prisma.servico.update({
-      where: { id },
-      data: dados
-    });
+  async atualizarServico(id: string, dados: {
+    nome?: string;
+    descricao?: string;
+    preco?: number;
+    duracao_minutos?: number;
+    ativo?: boolean;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("servicos")
+      .update(dados)
+      .eq("id", id)
+      .select("*")
+      .single();
+    return data as ServicoDB;
   }
 };
-

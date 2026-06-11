@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return responderSucesso(obterSessaoAtual(), "Sessao carregada com sucesso.");
+    const sessao = await obterSessaoAtual();
+    return responderSucesso(sessao, "Sessao carregada com sucesso.");
   } catch (erro) {
     return responderErro(erro);
   }

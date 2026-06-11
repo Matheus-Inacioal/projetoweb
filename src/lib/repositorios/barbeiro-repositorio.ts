@@ -1,62 +1,72 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/banco/prisma";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
+import type { BarbeiroComRelacoesDB } from "@/lib/utilitarios/mapeadores";
 
-const incluirRelacoesBarbeiro = {
-  barbearia: true
-} satisfies Prisma.BarbeiroInclude;
+const SELECAO_BARBEIRO_COM_BARBEARIA = "*, barbearia:barbearias(*)";
+const SELECAO_BARBEIRO_COMPLETO = "*, barbearia:barbearias(*), disponibilidades(*)";
 
 export const barbeiroRepositorio = {
-  listarBarbeirosPorBarbearia(barbeariaId: string) {
-    return prisma.barbeiro.findMany({
-      where: {
-        barbeariaId
-      },
-      include: incluirRelacoesBarbeiro,
-      orderBy: {
-        nome: "asc"
-      }
-    });
+  async listarBarbeirosPorBarbearia(barbeariaId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbeiros")
+      .select(SELECAO_BARBEIRO_COM_BARBEARIA)
+      .eq("barbearia_id", barbeariaId)
+      .order("nome", { ascending: true });
+    return (data ?? []) as BarbeiroComRelacoesDB[];
   },
 
-  obterBarbeiroPorId(id: string) {
-    return prisma.barbeiro.findUnique({
-      where: { id },
-      include: {
-        ...incluirRelacoesBarbeiro,
-        disponibilidades: true
-      }
-    });
+  async obterBarbeiroPorId(id: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbeiros")
+      .select(SELECAO_BARBEIRO_COMPLETO)
+      .eq("id", id)
+      .single();
+    return data as BarbeiroComRelacoesDB | null;
   },
 
-  obterBarbeiroPorUsuarioId(usuarioId: string) {
-    return prisma.barbeiro.findUnique({
-      where: { usuarioId },
-      include: {
-        ...incluirRelacoesBarbeiro,
-        disponibilidades: true
-      }
-    });
+  async obterBarbeiroPorUsuarioId(usuarioId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbeiros")
+      .select(SELECAO_BARBEIRO_COMPLETO)
+      .eq("usuario_id", usuarioId)
+      .single();
+    return data as BarbeiroComRelacoesDB | null;
   },
 
-  criarBarbeiro(dados: Prisma.BarbeiroUncheckedCreateInput) {
-    return prisma.barbeiro.create({
-      data: dados,
-      include: {
-        ...incluirRelacoesBarbeiro,
-        disponibilidades: true
-      }
-    });
+  async criarBarbeiro(dados: {
+    nome: string;
+    especialidade: string;
+    descricao: string;
+    telefone: string;
+    ativo?: boolean;
+    usuario_id?: string | null;
+    barbearia_id?: string | null;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbeiros")
+      .insert({ ativo: true, ...dados })
+      .select(SELECAO_BARBEIRO_COMPLETO)
+      .single();
+    return data as BarbeiroComRelacoesDB;
   },
 
-  atualizarBarbeiro(id: string, dados: Prisma.BarbeiroUpdateInput) {
-    return prisma.barbeiro.update({
-      where: { id },
-      data: dados,
-      include: {
-        ...incluirRelacoesBarbeiro,
-        disponibilidades: true
-      }
-    });
+  async atualizarBarbeiro(id: string, dados: {
+    nome?: string;
+    especialidade?: string;
+    descricao?: string;
+    telefone?: string;
+    ativo?: boolean;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("barbeiros")
+      .update(dados)
+      .eq("id", id)
+      .select(SELECAO_BARBEIRO_COMPLETO)
+      .single();
+    return data as BarbeiroComRelacoesDB;
   }
 };
-

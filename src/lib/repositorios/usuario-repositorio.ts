@@ -1,45 +1,63 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/banco/prisma";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
+import type { PerfilDB } from "@/lib/utilitarios/mapeadores";
 import type { PerfilUsuario } from "@/tipos/enums";
 
 export const usuarioRepositorio = {
-  criarUsuario(dados: Prisma.UsuarioCreateInput) {
-    return prisma.usuario.create({ data: dados });
+  async obterUsuarioPorEmail(email: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", email)
+      .single();
+    return data as PerfilDB | null;
   },
 
-  obterUsuarioPorEmail(email: string) {
-    return prisma.usuario.findUnique({ where: { email } });
+  async obterUsuarioPorId(id: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .single();
+    return data as PerfilDB | null;
   },
 
-  obterUsuarioPorId(id: string) {
-    return prisma.usuario.findUnique({ where: { id } });
+  async listarUsuarios() {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("criado_em", { ascending: false });
+    return (data ?? []) as PerfilDB[];
   },
 
-  listarUsuarios() {
-    return prisma.usuario.findMany({
-      orderBy: {
-        criadoEm: "desc"
-      }
-    });
+  async atualizarUsuario(id: string, dados: Partial<Pick<PerfilDB, "nome" | "email">>) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("profiles")
+      .update(dados)
+      .eq("id", id)
+      .select("*")
+      .single();
+    return data as PerfilDB;
   },
 
-  atualizarUsuario(id: string, dados: Prisma.UsuarioUpdateInput) {
-    return prisma.usuario.update({
-      where: { id },
-      data: dados
-    });
+  async contarUsuarios() {
+    const supabase = criarClienteSupabaseServidor();
+    const { count } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
+    return count ?? 0;
   },
 
-  contarUsuarios() {
-    return prisma.usuario.count();
-  },
-
-  listarUsuariosPorPerfil(perfil: PerfilUsuario) {
-    return prisma.usuario.findMany({
-      where: { perfil },
-      orderBy: {
-        nome: "asc"
-      }
-    });
+  async listarUsuariosPorPerfil(perfil: PerfilUsuario) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("perfil", perfil)
+      .order("nome", { ascending: true });
+    return (data ?? []) as PerfilDB[];
   }
 };

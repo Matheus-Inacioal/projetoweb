@@ -18,17 +18,16 @@ import {
   possuiConflitoDeHorario
 } from "@/lib/utilitarios/horarios-disponiveis";
 import { mapearAgendamentoDetalhado } from "@/lib/utilitarios/mapeadores";
+import type { AgendamentoComRelacoesDB } from "@/lib/utilitarios/mapeadores";
 import { esquemaCriacaoAgendamento } from "@/lib/validacoes/agendamento-validacoes";
 import { esquemaConsultaHorariosDisponiveis } from "@/lib/validacoes/horarios-disponiveis-validacoes";
 import type { HorariosDisponiveisResumo, ProximaDisponibilidadeResumo } from "@/tipos/dados";
 import type { PerfilUsuario } from "@/tipos/enums";
 
-function mapearAgendamentosExistentes(
-  agendamentosAtivos: Awaited<ReturnType<typeof agendamentoRepositorio.listarAgendamentosAtivosDoDiaPorBarbeiro>>
-) {
+function mapearAgendamentosExistentes(agendamentosAtivos: AgendamentoComRelacoesDB[]) {
   return agendamentosAtivos.map((agendamentoAtual) => ({
     hora: agendamentoAtual.hora,
-    duracaoMinutos: agendamentoAtual.servico.duracaoMinutos
+    duracaoMinutos: agendamentoAtual.servico.duracao_minutos
   }));
 }
 
@@ -42,10 +41,10 @@ async function buscarProximaDisponibilidade(params: {
     const dataAtual = adicionarDias(params.dataInicial, deslocamentoDias);
     const diaSemanaAtual = obterDiaSemanaPorData(dataAtual);
     const intervalosDoDia = params.disponibilidades
-      .filter((disponibilidade) => disponibilidade.diaSemana === diaSemanaAtual)
+      .filter((disponibilidade) => disponibilidade.dia_semana === diaSemanaAtual)
       .map((disponibilidade) => ({
-        horaInicio: disponibilidade.horaInicio,
-        horaFim: disponibilidade.horaFim
+        horaInicio: disponibilidade.hora_inicio,
+        horaFim: disponibilidade.hora_fim
       }));
 
     if (!intervalosDoDia.length) {
@@ -97,17 +96,17 @@ export const agendamentoServico = {
     garantirCondicao(barbeiroEncontrado.ativo, "O barbeiro selecionado nao esta ativo.");
     garantirCondicao(servicoEncontrado.ativo, "O servico selecionado nao esta disponivel.");
     garantirCondicao(
-      !!barbeiroEncontrado.barbeariaId && barbeiroEncontrado.barbeariaId === servicoEncontrado.barbeariaId,
+      !!barbeiroEncontrado.barbearia_id && barbeiroEncontrado.barbearia_id === servicoEncontrado.barbearia_id,
       "O barbeiro selecionado nao atende este servico."
     );
 
     const disponibilidades = await disponibilidadeRepositorio.listarDisponibilidadesPorBarbeiro(barbeiroEncontrado.id);
     const diaSemanaSelecionado = obterDiaSemanaPorData(dataSelecionada);
     const intervalosDoDia = disponibilidades
-      .filter((disponibilidade) => disponibilidade.diaSemana === diaSemanaSelecionado)
+      .filter((disponibilidade) => disponibilidade.dia_semana === diaSemanaSelecionado)
       .map((disponibilidade) => ({
-        horaInicio: disponibilidade.horaInicio,
-        horaFim: disponibilidade.horaFim
+        horaInicio: disponibilidade.hora_inicio,
+        horaFim: disponibilidade.hora_fim
       }));
 
     const agendamentosAtivos = await agendamentoRepositorio.listarAgendamentosAtivosDoDiaPorBarbeiro(
@@ -117,7 +116,7 @@ export const agendamentoServico = {
 
     const horariosDisponiveis = gerarHorariosDisponiveis({
       intervalosDisponiveis: intervalosDoDia,
-      duracaoServico: servicoEncontrado.duracaoMinutos,
+      duracaoServico: servicoEncontrado.duracao_minutos,
       gapMinutos: GAP_PADRAO_MINUTOS,
       agendamentosExistentes: mapearAgendamentosExistentes(agendamentosAtivos),
       dataReferencia: dataSelecionada
@@ -127,7 +126,7 @@ export const agendamentoServico = {
       horariosDisponiveis.length === 0
         ? await buscarProximaDisponibilidade({
             barbeiroId: barbeiroEncontrado.id,
-            duracaoServicoMinutos: servicoEncontrado.duracaoMinutos,
+            duracaoServicoMinutos: servicoEncontrado.duracao_minutos,
             disponibilidades,
             dataInicial: dataSelecionada
           })
@@ -137,7 +136,7 @@ export const agendamentoServico = {
       data: dataSelecionada.toISOString(),
       barbeiroId: barbeiroEncontrado.id,
       servicoId: servicoEncontrado.id,
-      duracaoServicoMinutos: servicoEncontrado.duracaoMinutos,
+      duracaoServicoMinutos: servicoEncontrado.duracao_minutos,
       gapMinutos: GAP_PADRAO_MINUTOS,
       horariosDisponiveis,
       primeiroHorarioDisponivel: horariosDisponiveis[0] ?? null,
@@ -165,13 +164,13 @@ export const agendamentoServico = {
     const barbeiroEncontrado = garantirExistencia(barbeiro, "Barbeiro nao encontrado.", 404);
     const servicoEncontrado = garantirExistencia(servico, "Servico nao encontrado.", 404);
 
-    garantirCondicao(!!barbeiroEncontrado.barbeariaId, "Este barbeiro nao esta vinculado a uma barbearia.");
+    garantirCondicao(!!barbeiroEncontrado.barbearia_id, "Este barbeiro nao esta vinculado a uma barbearia.");
     garantirCondicao(
-      barbeiroEncontrado.barbeariaId === barbeariaEncontrada.id,
+      barbeiroEncontrado.barbearia_id === barbeariaEncontrada.id,
       "O barbeiro selecionado nao pertence a esta barbearia."
     );
     garantirCondicao(
-      servicoEncontrado.barbeariaId === barbeariaEncontrada.id,
+      servicoEncontrado.barbearia_id === barbeariaEncontrada.id,
       "O servico selecionado nao pertence a esta barbearia."
     );
     garantirCondicao(servicoEncontrado.ativo, "O servico selecionado nao esta disponivel.");
@@ -179,7 +178,7 @@ export const agendamentoServico = {
 
     const diaSemana = obterDiaSemanaPorData(dataAgendamento);
     const disponibilidades = await disponibilidadeRepositorio.listarDisponibilidadesPorBarbeiro(barbeiroEncontrado.id);
-    const disponibilidadesDoDia = disponibilidades.filter((disponibilidade) => disponibilidade.diaSemana === diaSemana);
+    const disponibilidadesDoDia = disponibilidades.filter((disponibilidade) => disponibilidade.dia_semana === diaSemana);
 
     garantirCondicao(disponibilidadesDoDia.length > 0, "O barbeiro nao possui disponibilidade cadastrada para este dia.");
 
@@ -191,7 +190,7 @@ export const agendamentoServico = {
 
     const conflitoDeHorario = possuiConflitoDeHorario({
       hora: dadosValidados.hora,
-      duracaoServico: servicoEncontrado.duracaoMinutos,
+      duracaoServico: servicoEncontrado.duracao_minutos,
       gapMinutos: GAP_PADRAO_MINUTOS,
       agendamentosExistentes
     });
@@ -200,10 +199,10 @@ export const agendamentoServico = {
 
     const horariosDisponiveis = gerarHorariosDisponiveis({
       intervalosDisponiveis: disponibilidadesDoDia.map((disponibilidade) => ({
-        horaInicio: disponibilidade.horaInicio,
-        horaFim: disponibilidade.horaFim
+        horaInicio: disponibilidade.hora_inicio,
+        horaFim: disponibilidade.hora_fim
       })),
-      duracaoServico: servicoEncontrado.duracaoMinutos,
+      duracaoServico: servicoEncontrado.duracao_minutos,
       gapMinutos: GAP_PADRAO_MINUTOS,
       agendamentosExistentes,
       dataReferencia: dataAgendamento
@@ -214,12 +213,15 @@ export const agendamentoServico = {
       "O horario selecionado nao faz parte da grade disponivel para este servico."
     );
 
+    // Formatar data como string ISO (YYYY-MM-DD) para a coluna date do PostgreSQL
+    const dataStr = dataAgendamento.toISOString().split("T")[0];
+
     const agendamentoCriado = await agendamentoRepositorio.criarAgendamento({
-      contratanteId,
-      barbeariaId: barbeariaEncontrada.id,
-      barbeiroId: barbeiroEncontrado.id,
-      servicoId: servicoEncontrado.id,
-      data: dataAgendamento,
+      contratante_id: contratanteId,
+      barbearia_id: barbeariaEncontrada.id,
+      barbeiro_id: barbeiroEncontrado.id,
+      servico_id: servicoEncontrado.id,
+      data: dataStr,
       hora: dadosValidados.hora,
       status: "PENDENTE",
       observacao: dadosValidados.observacao?.trim() || null
@@ -236,7 +238,7 @@ export const agendamentoServico = {
     );
 
     if (perfil === "CONTRATANTE") {
-      garantirCondicao(agendamento.contratanteId === usuarioId, "Voce nao pode cancelar este agendamento.", 403);
+      garantirCondicao(agendamento.contratante_id === usuarioId, "Voce nao pode cancelar este agendamento.", 403);
     }
 
     if (perfil === "PRESTADOR_PF") {
@@ -245,14 +247,14 @@ export const agendamentoServico = {
         "Perfil profissional nao encontrado.",
         404
       );
-      garantirCondicao(barbeiro.barbeiro.id === agendamento.barbeiroId, "Voce nao pode cancelar este agendamento.", 403);
+      garantirCondicao(barbeiro.barbeiro.id === agendamento.barbeiro_id, "Voce nao pode cancelar este agendamento.", 403);
     }
 
     if (perfil === "PRESTADOR_PJ") {
       const perfilBarbearia = await barbeariaServico.obterPerfilBarbearia(usuarioId);
       const barbeariaPerfil = garantirExistencia(perfilBarbearia.barbearia, "Barbearia nao encontrada.", 404);
       garantirCondicao(
-        barbeariaPerfil.id === agendamento.barbeariaId,
+        barbeariaPerfil.id === agendamento.barbearia_id,
         "Voce nao pode cancelar este agendamento.",
         403
       );

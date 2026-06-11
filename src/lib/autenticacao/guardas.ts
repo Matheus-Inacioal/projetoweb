@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { obterSessaoAtual } from "@/lib/autenticacao/sessao";
 import type { PerfilUsuario } from "@/tipos/enums";
 
-export function exigirSessao(perfisPermitidos?: PerfilUsuario[]) {
-  const sessao = obterSessaoAtual();
+export async function exigirSessao(perfisPermitidos?: PerfilUsuario[]) {
+  const sessao = await obterSessaoAtual();
 
   if (!sessao) {
     redirect("/login");
@@ -15,4 +15,3 @@ export function exigirSessao(perfisPermitidos?: PerfilUsuario[]) {
 
   return sessao;
 }
-

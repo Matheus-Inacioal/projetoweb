@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    obterSessaoObrigatoriaApi(["ADMIN"]);
+    await obterSessaoObrigatoriaApi(["ADMIN"]);
     const usuarios = await adminServico.listarUsuarios();
     return responderSucesso(usuarios, "Usuarios carregados com sucesso.");
   } catch (erro) {

@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: { barbeariaId
 
 export async function POST(request: Request, { params }: { params: { barbeariaId: string } }) {
   try {
-    const sessao = obterSessaoObrigatoriaApi(["PRESTADOR_PJ", "ADMIN"]);
+    const sessao = await obterSessaoObrigatoriaApi(["PRESTADOR_PJ", "ADMIN"]);
 
     if (sessao.perfil === "PRESTADOR_PJ") {
       const perfilBarbearia = await barbeariaServico.obterPerfilBarbearia(sessao.usuarioId);

@@ -1,7 +1,7 @@
 import { agendamentoRepositorio } from "@/lib/repositorios/agendamento-repositorio";
 import { barbeariaRepositorio } from "@/lib/repositorios/barbearia-repositorio";
 import { usuarioRepositorio } from "@/lib/repositorios/usuario-repositorio";
-import { garantirCondicao, garantirExistencia } from "@/lib/utilitarios/erro-aplicacao";
+import { garantirExistencia } from "@/lib/utilitarios/erro-aplicacao";
 import { mapearAgendamentoDetalhado, mapearBarbeariaDetalhada, mapearBarbeariaResumo, mapearUsuarioResumo } from "@/lib/utilitarios/mapeadores";
 import { esquemaBarbearia } from "@/lib/validacoes/barbearia-validacoes";
 
@@ -63,7 +63,7 @@ export const barbeariaServico = {
         descricao: dadosValidados.descricao.trim(),
         endereco: dadosValidados.endereco.trim(),
         telefone: dadosValidados.telefone.trim(),
-        responsavelId
+        responsavel_id: responsavelId
       });
 
       return mapearBarbeariaDetalhada(barbeariaCriada);

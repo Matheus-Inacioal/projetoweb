@@ -146,3 +146,19 @@ export interface ResumoPainelAdmin {
   agendamentosPendentes: number;
   agendamentosConfirmados: number;
 }
+
+export interface FavoritoResumo {
+  id: string;
+  usuarioId: string;
+  barbeariaId: string;
+  barbeariaNome: string;
+  criadoEm: string;
+}
+
+export interface FotoResumo {
+  id: string;
+  barbeariaId: string;
+  url: string;
+  descricao: string | null;
+  criadoEm: string;
+}

@@ -1,139 +1,148 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/banco/prisma";
+import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
+import type { AgendamentoComRelacoesDB } from "@/lib/utilitarios/mapeadores";
 import type { StatusAgendamento } from "@/tipos/enums";
 
-const incluirRelacoesAgendamento = {
-  contratante: true,
-  barbearia: true,
-  barbeiro: true,
-  servico: true,
-  avaliacao: true
-} satisfies Prisma.AgendamentoInclude;
+const SELECAO_AGENDAMENTO_COM_RELACOES =
+  "*, contratante:profiles!contratante_id(*), barbearia:barbearias(*), barbeiro:barbeiros(*), servico:servicos(*), avaliacoes(*)";
 
 export const agendamentoRepositorio = {
-  criarAgendamento(dados: Prisma.AgendamentoUncheckedCreateInput) {
-    return prisma.agendamento.create({
-      data: dados,
-      include: incluirRelacoesAgendamento
-    });
+  async criarAgendamento(dados: {
+    contratante_id: string;
+    barbearia_id: string;
+    barbeiro_id: string;
+    servico_id: string;
+    data: string;
+    hora: string;
+    status?: string;
+    observacao?: string | null;
+  }) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .insert({ status: "PENDENTE", ...dados })
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .single();
+    return data as AgendamentoComRelacoesDB;
   },
 
-  obterAgendamentoPorId(id: string) {
-    return prisma.agendamento.findUnique({
-      where: { id },
-      include: incluirRelacoesAgendamento
-    });
+  async obterAgendamentoPorId(id: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("id", id)
+      .single();
+    return data as AgendamentoComRelacoesDB | null;
   },
 
-  listarAgendamentosPorContratante(contratanteId: string) {
-    return prisma.agendamento.findMany({
-      where: { contratanteId },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ data: "asc" }, { hora: "asc" }]
-    });
+  async listarAgendamentosPorContratante(contratanteId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("contratante_id", contratanteId)
+      .order("data", { ascending: true })
+      .order("hora", { ascending: true });
+    return (data ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  listarAgendamentosPorBarbeiro(barbeiroId: string) {
-    return prisma.agendamento.findMany({
-      where: { barbeiroId },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ data: "asc" }, { hora: "asc" }]
-    });
+  async listarAgendamentosPorBarbeiro(barbeiroId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("barbeiro_id", barbeiroId)
+      .order("data", { ascending: true })
+      .order("hora", { ascending: true });
+    return (data ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  listarAgendamentosPorBarbearia(barbeariaId: string) {
-    return prisma.agendamento.findMany({
-      where: { barbeariaId },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ data: "asc" }, { hora: "asc" }]
-    });
+  async listarAgendamentosPorBarbearia(barbeariaId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("barbearia_id", barbeariaId)
+      .order("data", { ascending: true })
+      .order("hora", { ascending: true });
+    return (data ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  listarAgendamentosDoDiaPorBarbeiro(barbeiroId: string, data: Date) {
-    const inicio = new Date(data);
-    inicio.setHours(0, 0, 0, 0);
+  async listarAgendamentosDoDiaPorBarbeiro(barbeiroId: string, data: Date) {
+    const dataStr = data.toISOString().split("T")[0];
 
-    const fim = new Date(inicio);
-    fim.setDate(fim.getDate() + 1);
-
-    return prisma.agendamento.findMany({
-      where: {
-        barbeiroId,
-        data: {
-          gte: inicio,
-          lt: fim
-        }
-      },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ hora: "asc" }]
-    });
+    const supabase = criarClienteSupabaseServidor();
+    const { data: resultado } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("barbeiro_id", barbeiroId)
+      .eq("data", dataStr)
+      .order("hora", { ascending: true });
+    return (resultado ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  listarAgendamentosDoDiaPorBarbearia(barbeariaId: string, data: Date) {
-    const inicio = new Date(data);
-    inicio.setHours(0, 0, 0, 0);
+  async listarAgendamentosDoDiaPorBarbearia(barbeariaId: string, data: Date) {
+    const dataStr = data.toISOString().split("T")[0];
 
-    const fim = new Date(inicio);
-    fim.setDate(fim.getDate() + 1);
-
-    return prisma.agendamento.findMany({
-      where: {
-        barbeariaId,
-        data: {
-          gte: inicio,
-          lt: fim
-        }
-      },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ hora: "asc" }]
-    });
+    const supabase = criarClienteSupabaseServidor();
+    const { data: resultado } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("barbearia_id", barbeariaId)
+      .eq("data", dataStr)
+      .order("hora", { ascending: true });
+    return (resultado ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  listarAgendamentosAtivosDoDiaPorBarbeiro(barbeiroId: string, data: Date) {
-    const inicio = new Date(data);
-    inicio.setHours(0, 0, 0, 0);
+  async listarAgendamentosAtivosDoDiaPorBarbeiro(barbeiroId: string, data: Date) {
+    const dataStr = data.toISOString().split("T")[0];
 
-    const fim = new Date(inicio);
-    fim.setDate(fim.getDate() + 1);
-
-    return prisma.agendamento.findMany({
-      where: {
-        barbeiroId,
-        status: {
-          not: "CANCELADO"
-        },
-        data: {
-          gte: inicio,
-          lt: fim
-        }
-      },
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ hora: "asc" }]
-    });
+    const supabase = criarClienteSupabaseServidor();
+    const { data: resultado } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .eq("barbeiro_id", barbeiroId)
+      .eq("data", dataStr)
+      .neq("status", "CANCELADO")
+      .order("hora", { ascending: true });
+    return (resultado ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  atualizarStatusAgendamento(id: string, status: StatusAgendamento) {
-    return prisma.agendamento.update({
-      where: { id },
-      data: { status },
-      include: incluirRelacoesAgendamento
-    });
+  async atualizarStatusAgendamento(id: string, status: StatusAgendamento) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .update({ status })
+      .eq("id", id)
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .single();
+    return data as AgendamentoComRelacoesDB;
   },
 
-  listarTodosAgendamentos() {
-    return prisma.agendamento.findMany({
-      include: incluirRelacoesAgendamento,
-      orderBy: [{ data: "desc" }, { hora: "desc" }]
-    });
+  async listarTodosAgendamentos() {
+    const supabase = criarClienteSupabaseServidor();
+    const { data } = await supabase
+      .from("agendamentos")
+      .select(SELECAO_AGENDAMENTO_COM_RELACOES)
+      .order("data", { ascending: false })
+      .order("hora", { ascending: false });
+    return (data ?? []) as AgendamentoComRelacoesDB[];
   },
 
-  contarAgendamentos() {
-    return prisma.agendamento.count();
+  async contarAgendamentos() {
+    const supabase = criarClienteSupabaseServidor();
+    const { count } = await supabase
+      .from("agendamentos")
+      .select("*", { count: "exact", head: true });
+    return count ?? 0;
   },
 
-  contarAgendamentosPorStatus(status: StatusAgendamento) {
-    return prisma.agendamento.count({
-      where: { status }
-    });
+  async contarAgendamentosPorStatus(status: StatusAgendamento) {
+    const supabase = criarClienteSupabaseServidor();
+    const { count } = await supabase
+      .from("agendamentos")
+      .select("*", { count: "exact", head: true })
+      .eq("status", status);
+    return count ?? 0;
   }
 };
