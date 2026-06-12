@@ -12,7 +12,7 @@ function montarLinks(sessao: SessaoUsuario | null) {
     ];
   }
 
-  if (sessao.tipo === "consumidor") {
+  if (sessao.tipoUsuario === "consumidor") {
     return [
       { href: "/dashboard", label: "Encontrar Prestadores" },
       { href: "/favoritos", label: "Favoritos" },
@@ -21,7 +21,7 @@ function montarLinks(sessao: SessaoUsuario | null) {
     ];
   }
 
-  if (sessao.tipo === "prestador") {
+  if (sessao.tipoUsuario === "prestador") {
     return [
       { href: "/dashboard", label: "Meu Dashboard" },
       { href: "/agenda", label: "Gerenciar Agenda" },
@@ -65,7 +65,7 @@ export function CabecalhoAplicacao({ sessao }: { sessao: SessaoUsuario | null })
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="rounded-lg border border-bege_borda bg-off_white px-4 py-3 text-sm text-texto_principal shadow-suave">
                 <p className="font-semibold text-verde_petroleo">{sessao.nome}</p>
-                <p className="text-xs text-texto_secundario">{rotulosTipoUsuario[sessao.tipo]}</p>
+                <p className="text-xs text-texto_secundario">{rotulosTipoUsuario[sessao.tipoUsuario]}</p>
               </div>
               <BotaoLogout />
             </div>

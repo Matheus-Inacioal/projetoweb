@@ -11,9 +11,9 @@ export const anuncioServico = {
         *,
         prestadores (
           id,
+          foto_url,
           usuarios (
-            nome,
-            foto_url
+            nome
           )
         )
       `)
@@ -37,7 +37,7 @@ export const anuncioServico = {
       id: a.id,
       prestadorId: a.prestador_id,
       prestadorNome: a.prestadores?.usuarios?.nome ?? "Prestador",
-      prestadorFotoUrl: a.prestadores?.usuarios?.foto_url ?? null,
+      prestadorFotoUrl: a.prestadores?.foto_url ?? null,
       titulo: a.titulo,
       descricao: a.descricao,
       imagemUrl: a.imagem_url,

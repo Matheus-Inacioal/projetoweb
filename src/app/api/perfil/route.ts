@@ -24,7 +24,7 @@ export async function PUT(request: Request) {
       telefone: corpo.telefone
     });
 
-    if (sessao.tipo === "prestador") {
+    if (sessao.tipoUsuario === "prestador") {
       await usuarioServico.atualizarDadosPrestador(sessao.usuarioId, {
         descricao: corpo.descricao ?? "",
         especialidade: corpo.especialidade ?? "",

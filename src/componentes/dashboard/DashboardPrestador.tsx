@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBuscarDados } from "@/hooks/useBuscarDados";
 import { useMutacao } from "@/hooks/useMutacao";
-import type { ContratacaoDetalhada, AnuncioResumo } from "@/tipos/dados";
+import type { AgendamentoDetalhado, AnuncioResumo } from "@/tipos/dados";
 import { EstadoCarregando } from "@/componentes/feedback/EstadoCarregando";
 import { EstadoErro } from "@/componentes/feedback/EstadoErro";
 import { EstadoVazio } from "@/componentes/feedback/EstadoVazio";
@@ -14,8 +14,8 @@ import { Botao } from "@/componentes/ui/Botao";
 import { formatarData, formatarMoeda } from "@/lib/utilitarios/datas";
 
 export function DashboardPrestador() {
-  const { dados: contratacoes, carregando: cCarregando, erro: cErro, recarregar: cRecarregar } =
-    useBuscarDados<ContratacaoDetalhada[]>("/api/contratacoes");
+  const { dados: agendamentos, carregando: cCarregando, erro: cErro, recarregar: cRecarregar } =
+    useBuscarDados<AgendamentoDetalhado[]>("/api/contratacoes");
 
   const { dados: anuncios, carregando: aCarregando, erro: aErro, recarregar: aRecarregar } =
     useBuscarDados<AnuncioResumo[]>("/api/anuncios");
@@ -26,9 +26,7 @@ export function DashboardPrestador() {
   const [subindoImagem, setSubindoImagem] = useState(false);
   const [msgSucessoAd, setMsgSucessoAd] = useState<string | null>(null);
 
-  const { executar: atualizarStatus } = useMutacao<any, any>("/api/contratacoes", "PUT"); // we will construct URL dynamically
   const { executar: criarAnuncio, carregando: adCriando, erro: adErro } = useMutacao<any, any>("/api/anuncios", "POST");
-  const { executar: excluirAnuncio } = useMutacao<any, any>("/api/anuncios", "DELETE"); // we will construct URL dynamically
 
   async function handleMudarStatus(id: string, novoStatus: string) {
     try {
@@ -109,38 +107,40 @@ export function DashboardPrestador() {
       <div>
         <p className="texto-destaque mb-2">PRESTADOR</p>
         <h1 className="text-4xl font-serif font-bold text-verde_petroleo">Painel de Controle</h1>
-        <p className="text-texto_secundario">Gerencie suas contratações recebidas e promova seus serviços.</p>
+        <p className="text-texto_secundario">Gerencie seus agendamentos recebidos e promova seus serviços.</p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        {/* Contratações Recebidas */}
+        {/* Agendamentos Recebidos */}
         <section className="space-y-6">
           <div className="border-b border-bege_borda pb-4">
-            <h2 className="text-2xl font-serif font-bold text-texto_principal">Agenda de Contratações</h2>
+            <h2 className="text-2xl font-serif font-bold text-texto_principal">Agenda de Atendimento</h2>
             <p className="text-sm text-texto_secundario">Acompanhe e confirme os serviços solicitados pelos clientes.</p>
           </div>
 
           {cCarregando ? (
-            <EstadoCarregando texto="Carregando contratações..." />
+            <EstadoCarregando texto="Carregando agendamentos..." />
           ) : cErro ? (
             <EstadoErro mensagem={cErro} onTentarNovamente={cRecarregar} />
-          ) : contratacoes && contratacoes.length > 0 ? (
+          ) : agendamentos && agendamentos.length > 0 ? (
             <div className="space-y-4">
-              {contratacoes.map((c) => (
+              {agendamentos.map((c) => (
                 <div key={c.id} className="cartao p-6 bg-white border border-bege_borda flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-texto_principal">{c.consumidorNome}</span>
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        c.status === "PENDENTE" && "bg-yellow-100 text-yellow-800"
+                        c.status === "pendente" && "bg-yellow-100 text-yellow-800"
                       } ${
-                        c.status === "CONFIRMADO" && "bg-blue-100 text-blue-800"
+                        c.status === "confirmado" && "bg-blue-100 text-blue-800"
                       } ${
-                        c.status === "CONCLUIDO" && "bg-green-100 text-green-800"
+                        c.status === "concluido" && "bg-green-100 text-green-800"
                       } ${
-                        c.status === "CANCELADO" && "bg-red-100 text-red-800"
+                        c.status === "cancelado" && "bg-red-100 text-red-800"
+                      } ${
+                        c.status === "pago" && "bg-purple-100 text-purple-800"
                       }`}>
-                        {c.status}
+                        {c.status.toUpperCase()}
                       </span>
                     </div>
 
@@ -148,7 +148,7 @@ export function DashboardPrestador() {
                       ✂️ <span className="font-medium text-texto_principal">{c.servicoNome}</span> • 💰 {formatarMoeda(c.valor)}
                     </p>
                     <p className="text-xs text-texto_secundario">
-                      📅 {formatarData(c.data)} às {c.horario}
+                      📅 Realizado em: {c.data ? formatarData(c.data) : "Não informada"} às {c.horario || ""}
                     </p>
                     {c.observacao && (
                       <p className="text-xs italic bg-marfim p-2 rounded text-texto_secundario">
@@ -159,23 +159,23 @@ export function DashboardPrestador() {
 
                   {/* Ações */}
                   <div className="flex gap-2">
-                    {c.status === "PENDENTE" && (
+                    {c.status === "pendente" && (
                       <>
-                        <Botao onClick={() => handleMudarStatus(c.id, "CONFIRMADO")} size="sm" className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700">
+                        <Botao onClick={() => handleMudarStatus(c.id, "confirmado")} className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700">
                           Confirmar
                         </Botao>
-                        <Botao onClick={() => handleMudarStatus(c.id, "CANCELADO")} variante="perigo" size="sm" className="px-3 py-1.5 text-xs">
+                        <Botao onClick={() => handleMudarStatus(c.id, "cancelado")} variante="perigo" className="px-3 py-1.5 text-xs">
                           Recusar
                         </Botao>
                       </>
                     )}
 
-                    {c.status === "CONFIRMADO" && (
+                    {c.status === "confirmado" && (
                       <>
-                        <Botao onClick={() => handleMudarStatus(c.id, "CONCLUIDO")} size="sm" className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700">
+                        <Botao onClick={() => handleMudarStatus(c.id, "concluido")} className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700">
                           Concluir
                         </Botao>
-                        <Botao onClick={() => handleMudarStatus(c.id, "CANCELADO")} variante="perigo" size="sm" className="px-3 py-1.5 text-xs">
+                        <Botao onClick={() => handleMudarStatus(c.id, "cancelado")} variante="perigo" className="px-3 py-1.5 text-xs">
                           Cancelar
                         </Botao>
                       </>
@@ -186,7 +186,7 @@ export function DashboardPrestador() {
             </div>
           ) : (
             <EstadoVazio
-              titulo="Nenhuma contratação encontrada"
+              titulo="Nenhum agendamento encontrado"
               descricao="Quando os clientes contratarem seus serviços, eles aparecerão aqui."
             />
           )}

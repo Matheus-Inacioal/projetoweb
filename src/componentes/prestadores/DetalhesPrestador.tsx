@@ -183,8 +183,8 @@ export function DetalhesPrestador({ prestadorId }: { prestadorId: string }) {
         <div className="h-fit cartao p-8 bg-marfim border border-bege_borda sticky top-8 space-y-6">
           <h2 className="text-2xl font-serif font-bold text-verde_petroleo border-b border-bege_borda pb-2">Agendar Serviço</h2>
 
-          {sucesso && <MensagemRetorno tipo="sucesso" className="text-sm" mensagem="Agendamento efetuado! Redirecionando..." />}
-          {erroAgendamento && <MensagemRetorno tipo="erro" className="text-sm" mensagem={erroAgendamento} />}
+          {sucesso && <MensagemRetorno tipo="sucesso" mensagem="Agendamento efetuado! Redirecionando..." />}
+          {erroAgendamento && <MensagemRetorno tipo="erro" mensagem={erroAgendamento} />}
 
           {!servicoSelecionado ? (
             <p className="text-sm text-texto_secundario">Selecione um serviço ao lado para começar.</p>

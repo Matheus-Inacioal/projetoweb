@@ -2,8 +2,24 @@ import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
 import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
 
 export const favoritoServico = {
-  async adicionarFavorito(consumidorId: string, prestadorId: string) {
+  async obterConsumidorId(usuarioId: string) {
     const supabase = criarClienteSupabaseServidor();
+    const { data, error } = await supabase
+      .from("consumidores")
+      .select("id")
+      .eq("usuario_id", usuarioId)
+      .single();
+
+    if (error || !data) {
+      throw new ErroAplicacao("Perfil de consumidor não encontrado.", 404);
+    }
+
+    return data.id;
+  },
+
+  async adicionarFavorito(usuarioId: string, prestadorId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const consumidorId = await this.obterConsumidorId(usuarioId);
 
     const { data, error } = await supabase
       .from("favoritos")
@@ -24,8 +40,9 @@ export const favoritoServico = {
     return data;
   },
 
-  async removerFavorito(consumidorId: string, prestadorId: string) {
+  async removerFavorito(usuarioId: string, prestadorId: string) {
     const supabase = criarClienteSupabaseServidor();
+    const consumidorId = await this.obterConsumidorId(usuarioId);
 
     const { error } = await supabase
       .from("favoritos")
@@ -40,8 +57,9 @@ export const favoritoServico = {
     return true;
   },
 
-  async listarFavoritos(consumidorId: string) {
+  async listarFavoritos(usuarioId: string) {
     const supabase = criarClienteSupabaseServidor();
+    const consumidorId = await this.obterConsumidorId(usuarioId);
 
     const { data, error } = await supabase
       .from("favoritos")
@@ -53,9 +71,9 @@ export const favoritoServico = {
         prestadores (
           id,
           especialidade,
+          foto_url,
           usuarios (
-            nome,
-            foto_url
+            nome
           )
         )
       `)
@@ -71,22 +89,27 @@ export const favoritoServico = {
       prestadorId: f.prestador_id,
       prestadorNome: f.prestadores?.usuarios?.nome ?? "Prestador",
       prestadorEspecialidade: f.prestadores?.especialidade ?? "",
-      prestadorFotoUrl: f.prestadores?.usuarios?.foto_url ?? null,
+      prestadorFotoUrl: f.prestadores?.foto_url ?? null,
       criadoEm: f.criado_em
     }));
   },
 
-  async eFavorito(consumidorId: string, prestadorId: string): Promise<boolean> {
+  async eFavorito(usuarioId: string, prestadorId: string): Promise<boolean> {
     const supabase = criarClienteSupabaseServidor();
+    try {
+      const consumidorId = await this.obterConsumidorId(usuarioId);
 
-    const { data, error } = await supabase
-      .from("favoritos")
-      .select("id")
-      .eq("consumidor_id", consumidorId)
-      .eq("prestador_id", prestadorId)
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from("favoritos")
+        .select("id")
+        .eq("consumidor_id", consumidorId)
+        .eq("prestador_id", prestadorId)
+        .maybeSingle();
 
-    if (error) return false;
-    return !!data;
+      if (error) return false;
+      return !!data;
+    } catch {
+      return false;
+    }
   }
 };

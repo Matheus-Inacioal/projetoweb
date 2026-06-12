@@ -12,8 +12,7 @@ export const prestadorServico = {
         usuarios (
           nome,
           email,
-          telefone,
-          foto_url
+          telefone
         )
       `)
       .eq("ativo", true);
@@ -34,7 +33,7 @@ export const prestadorServico = {
       nome: p.usuarios?.nome ?? "",
       email: p.usuarios?.email ?? "",
       telefone: p.usuarios?.telefone ?? null,
-      fotoUrl: p.usuarios?.foto_url ?? null,
+      fotoUrl: p.foto_url ?? null,
       descricao: p.descricao,
       especialidade: p.especialidade,
       endereco: p.endereco,
@@ -67,8 +66,7 @@ export const prestadorServico = {
         usuarios (
           nome,
           email,
-          telefone,
-          foto_url
+          telefone
         )
       `)
       .eq("id", id)
@@ -98,7 +96,7 @@ export const prestadorServico = {
       nome: prestador.usuarios?.nome ?? "",
       email: prestador.usuarios?.email ?? "",
       telefone: prestador.usuarios?.telefone ?? null,
-      fotoUrl: prestador.usuarios?.foto_url ?? null,
+      fotoUrl: prestador.foto_url ?? null,
       descricao: prestador.descricao,
       especialidade: prestador.especialidade,
       endereco: prestador.endereco,

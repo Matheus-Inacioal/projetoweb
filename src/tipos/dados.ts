@@ -1,4 +1,4 @@
-import type { TipoUsuario, StatusContratacao } from "@/tipos/enums";
+import type { TipoUsuario, StatusAgendamento } from "@/tipos/enums";
 
 export interface RespostaApi<TDados> {
   sucesso: boolean;
@@ -10,7 +10,7 @@ export interface SessaoUsuario {
   usuarioId: string;
   nome: string;
   email: string;
-  tipo: TipoUsuario;
+  tipoUsuario: TipoUsuario;
 }
 
 export interface UsuarioResumo {
@@ -19,7 +19,7 @@ export interface UsuarioResumo {
   email: string;
   telefone: string | null;
   fotoUrl: string | null;
-  tipo: TipoUsuario;
+  tipoUsuario: TipoUsuario;
   criadoEm: string;
 }
 
@@ -70,7 +70,7 @@ export interface AgendaResumo {
   criadoEm: string;
 }
 
-export interface ContratacaoDetalhada {
+export interface AgendamentoDetalhado {
   id: string;
   consumidorId: string;
   consumidorNome: string;
@@ -84,7 +84,7 @@ export interface ContratacaoDetalhada {
   data: string;
   horario: string;
   valor: number;
-  status: StatusContratacao;
+  status: StatusAgendamento;
   observacao: string | null;
   criadoEm: string;
 }

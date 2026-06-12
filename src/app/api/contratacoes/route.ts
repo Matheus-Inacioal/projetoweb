@@ -1,5 +1,5 @@
 import { obterSessaoObrigatoriaApi } from "@/lib/autenticacao/sessao";
-import { contratacaoServico } from "@/services/contratacao-servico";
+import { agendamentoServico } from "@/services/agendamento-servico";
 import { prestadorServico } from "@/services/prestador-servico";
 import { responderErro, responderSucesso } from "@/lib/utilitarios/respostas-api";
 import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
@@ -10,16 +10,15 @@ export async function GET() {
   try {
     const sessao = await obterSessaoObrigatoriaApi();
 
-    if (sessao.tipo === "consumidor") {
-      const contratacoes = await contratacaoServico.listarContratacoesConsumidor(sessao.usuarioId);
-      return responderSucesso(contratacoes, "Contratações carregadas com sucesso.");
-    } else if (sessao.tipo === "prestador") {
+    if (sessao.tipoUsuario === "consumidor") {
+      const agendamentos = await agendamentoServico.listarAgendamentosConsumidor(sessao.usuarioId);
+      return responderSucesso(agendamentos, "Agendamentos carregados com sucesso.");
+    } else if (sessao.tipoUsuario === "prestador") {
       const prestador = await prestadorServico.obterPrestadorPorUsuarioId(sessao.usuarioId);
-      const contratacoes = await contratacaoServico.listarContratacoesPrestador(prestador.id);
-      return responderSucesso(contratacoes, "Contratações recebidas carregadas com sucesso.");
-    } else if (sessao.tipo === "admin") {
-      // Admin lists all (or we could return a message/empty list, but let's handle admin load or return empty)
-      return responderSucesso([], "Admin no list direct.");
+      const agendamentos = await agendamentoServico.listarAgendamentosPrestador(prestador.id);
+      return responderSucesso(agendamentos, "Agendamentos recebidos carregados com sucesso.");
+    } else if (sessao.tipoUsuario === "admin") {
+      return responderSucesso([], "Painel administrativo.");
     }
 
     throw new ErroAplicacao("Perfil de usuário inválido.", 400);
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
       throw new ErroAplicacao("Campos obrigatórios ausentes.", 400);
     }
 
-    const contratacao = await contratacaoServico.contratarServico(
+    const agendamento = await agendamentoServico.agendarServico(
       sessao.usuarioId,
       prestadorId,
       agendaId,
@@ -45,7 +44,7 @@ export async function POST(request: Request) {
       observacao
     );
 
-    return responderSucesso(contratacao, "Serviço contratado com sucesso.", 201);
+    return responderSucesso(agendamento, "Serviço agendado com sucesso.", 201);
   } catch (erro) {
     return responderErro(erro);
   }

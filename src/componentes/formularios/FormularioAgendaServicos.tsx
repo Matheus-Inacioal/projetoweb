@@ -8,6 +8,7 @@ import { AreaTexto } from "@/componentes/ui/AreaTexto";
 import { Botao } from "@/componentes/ui/Botao";
 import { EstadoCarregando } from "@/componentes/feedback/EstadoCarregando";
 import { EstadoErro } from "@/componentes/feedback/EstadoErro";
+import { EstadoVazio } from "@/componentes/feedback/EstadoVazio";
 import { MensagemRetorno } from "@/componentes/feedback/MensagemRetorno";
 import { formatarMoeda, formatarData } from "@/lib/utilitarios/datas";
 

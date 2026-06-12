@@ -15,7 +15,7 @@ export const adminServico = {
       supabase.from("usuarios").select("*", { count: "exact", head: true }),
       supabase.from("prestadores").select("*", { count: "exact", head: true }),
       supabase.from("consumidores").select("*", { count: "exact", head: true }),
-      supabase.from("contratacoes").select("*", { count: "exact", head: true }),
+      supabase.from("agendamentos").select("*", { count: "exact", head: true }),
       supabase.from("anuncios").select("*", { count: "exact", head: true })
     ]);
 

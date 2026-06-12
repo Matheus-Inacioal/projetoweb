@@ -6,7 +6,7 @@ export const autenticacaoServico = {
   async cadastrar(email: string, aSenha: string, nome: string, telefone: string, tipo: TipoUsuario) {
     const supabase = criarClienteSupabaseServidor();
 
-    // 1. Cadastra no Supabase Auth
+    // 1. Cadastra no Supabase Auth com tipo_usuario na metadata para o trigger handle_new_user()
     const { data, error } = await supabase.auth.signUp({
       email,
       password: aSenha,
@@ -14,7 +14,7 @@ export const autenticacaoServico = {
         data: {
           nome,
           telefone,
-          tipo
+          tipo_usuario: tipo
         }
       }
     });
@@ -27,37 +27,10 @@ export const autenticacaoServico = {
       throw new ErroAplicacao("Não foi possível criar a conta.", 400);
     }
 
-    const userId = data.user.id;
-
-    // 2. Cria o registro complementar dependendo do tipo de usuário
-    if (tipo === "prestador") {
-      const { error: prestadorError } = await supabase
-        .from("prestadores")
-        .insert({
-          usuario_id: userId,
-          descricao: "",
-          especialidade: "",
-          endereco: "",
-          cidade: ""
-        });
-      if (prestadorError) {
-        console.error("Erro ao criar perfil de prestador:", prestadorError);
-      }
-    } else if (tipo === "consumidor") {
-      const { error: consumidorError } = await supabase
-        .from("consumidores")
-        .insert({
-          usuario_id: userId
-        });
-      if (consumidorError) {
-        console.error("Erro ao criar perfil de consumidor:", consumidorError);
-      }
-    }
-
     return {
-      usuarioId: userId,
+      usuarioId: data.user.id,
       email: data.user.email,
-      tipo
+      tipoUsuario: tipo
     };
   },
 
@@ -70,7 +43,8 @@ export const autenticacaoServico = {
     });
 
     if (error) {
-      throw new ErroAplicacao("Credenciais inválidas.", 400);
+      console.error("Erro no Supabase Auth (signInWithPassword):", error.message, error.status);
+      throw new ErroAplicacao(error.message === "Invalid login credentials" ? "Credenciais inválidas." : error.message, 400);
     }
 
     if (!data.user) {
@@ -80,7 +54,7 @@ export const autenticacaoServico = {
     // Busca o tipo do usuário
     const { data: usuario, error: usuarioError } = await supabase
       .from("usuarios")
-      .select("tipo, nome")
+      .select("tipo_usuario, nome")
       .eq("id", data.user.id)
       .single();
 
@@ -92,7 +66,7 @@ export const autenticacaoServico = {
       usuarioId: data.user.id,
       nome: usuario.nome,
       email: data.user.email ?? "",
-      tipo: usuario.tipo as TipoUsuario
+      tipoUsuario: usuario.tipo_usuario as TipoUsuario
     };
   },
 

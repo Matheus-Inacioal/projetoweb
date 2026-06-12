@@ -1,138 +1,84 @@
 # BarberGo
 
-Marketplace de agendamento com foco inicial em **barbearias**, permitindo cadastro, login, diferenciação de perfis, gestão operacional e agendamento de serviços com barbeiro, data e horário.
+Plataforma premium que conecta consumidores (clientes) e prestadores de serviços (barbeiros). O sistema gerencia cadastros, autenticação via Supabase Auth, controle de perfis de usuário, agenda operacional, favoritos, anúncios patrocinados e um painel de administração completo.
 
 ## Integrantes
 
 - **Matheus Inacio de Almeida Arruda** — **UC22200674**
 - **Wellington Gabriel Menezes da Silva** — **UC22101982**
 
-## Stack do MVP
+## Stack do Projeto
 
-- **Next.js** com **App Router**
-- **TypeScript**
-- **Tailwind CSS**
-- **Prisma**
-- **SQLite**
-- **React Server Components** para layouts e guardas
-- **API Routes** para autenticação, cadastros e agendamentos
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router) com React Server Components
+- **Linguagem**: [TypeScript](https://www.typescript.org/)
+- **Estilização**: [Tailwind CSS](https://tailwindcss.com/)
+- **Banco de Dados & Autenticação**: [Supabase](https://supabase.com/) (PostgreSQL & Supabase Auth)
+- **Storage**: Supabase Storage (bucket `perfis` para fotos de usuários e anúncios)
+- **Middleware**: Controle de acesso por cookies de sessão e proteção de rotas
 
-## Perfis suportados
+## Perfis Suportados
 
-- **Contratante**
-- **Prestador PF**
-- **Prestador PJ / Barbearia**
-- **Admin**
+- **Consumidor (Cliente)**: Cria conta, edita perfil, adiciona foto, localiza prestadores por cidade ou termo, favorita profissionais, realiza contratações de serviços e visualiza histórico.
+- **Prestador (Profissional)**: Cria conta, gerencia descrição/telefone/especialidade/localização, adiciona foto de perfil, gerencia agenda de horários disponíveis, cadastra catálogo de serviços com preços e duração, gerencia anúncios patrocinados e visualiza contratações recebidas.
+- **Admin**: Dashboard completo com métricas gerais e contagem de usuários, prestadores, consumidores, contratações e anúncios cadastrados.
 
-## Funcionalidades implementadas
+## Estrutura do Banco de Dados (Supabase PostgreSQL)
 
-### Contratante
-- cadastro e login
-- listagem pública de barbearias
-- visualização de detalhes da barbearia
-- visualização de barbeiros por barbearia
-- agendamento com barbeiro, serviço, data e horário
-- visualização de próximos agendamentos e histórico
-- cancelamento de agendamento
-- atualização de perfil
+O schema está contido em `supabase/schema.sql` e as políticas de segurança RLS (Row Level Security) em `supabase/policies.sql`. As tabelas incluem:
+1. `usuarios` (vínculo automático com `auth.users` via trigger)
+2. `prestadores` (informações profissionais)
+3. `consumidores` (informações de clientes)
+4. `servicos` (catálogo de atendimento)
+5. `agenda` (horários disponíveis de cada prestador)
+6. `contratacoes` (pedidos de serviço)
+7. `favoritos` (profissionais prediletos do consumidor)
+8. `anuncios` (campanhas e ofertas)
 
-### Prestador PF
-- dashboard com agenda do dia
-- página completa de agenda
-- cadastro de disponibilidade
-- atualização de perfil profissional
+## Políticas de RLS (Row Level Security)
 
-### Prestador PJ / Barbearia
-- dashboard da barbearia
-- agenda geral da barbearia
-- cadastro de barbeiros
-- cadastro de serviços
-- atualização de perfil da barbearia
+Segurança em nível de linha ativada em todas as tabelas:
+- **usuarios**: Leitura por autenticados, alteração apenas do próprio perfil.
+- **servicos / agenda / anuncios**: Inserção/Edição/Remoção permitida apenas ao prestador proprietário. Leitura pública/anônima.
+- **contratacoes**: Apenas o consumidor comprador pode criar. Leitura pelo consumidor comprador, pelo prestador contratado ou por administradores.
+- **favoritos**: Operações restritas ao consumidor proprietário.
 
-### Admin
-- dashboard administrativo com métricas
-- listagem de usuários
-- listagem de barbearias
-- listagem de agendamentos
-
-## Arquitetura
-
-O projeto segue a separação:
-
-```text
-UI -> Hook -> Serviço -> Repositório -> Banco
-```
-
-Estrutura principal:
+## Estrutura de Arquivos
 
 ```text
 src/
-  app/
-  componentes/
-  hooks/
-  lib/
-    autenticacao/
-    banco/
-    repositorios/
-    servicos/
-    utilitarios/
-    validacoes/
-  tipos/
-prisma/
+ ├─ app/                 # Páginas (Next.js App Router) e API Routes
+ ├─ componentes/         # Componentes React (UI, Layouts, Formulários)
+ ├─ hooks/               # React Hooks reutilizáveis
+ ├─ lib/                 # Configurações do Supabase, Session Helpers e Utilitários
+ ├─ tipos/               # Definições de Tipos TypeScript e Enums
+ └─ middleware.ts        # Proteção de rotas e verificação de sessões
 ```
 
-## Seed inicial
+## Como Configurar e Rodar Localmente
 
-O seed cria:
+### 1. Pré-requisitos
+- Criar um projeto no [Supabase](https://supabase.com/).
+- Obter a URL do projeto e a Anon Key.
 
-- 1 admin
-- 2 contratantes
-- 1 prestador PF
-- 1 prestador PJ
-- 1 barbearia
-- 2 barbeiros
-- 3 serviços
-- disponibilidades
-- agendamentos de exemplo
-- 1 avaliação
-
-### Credenciais seed
-
-Senha padrão para todas as contas:
-
-```text
-123456
+### 2. Configurar Variáveis de Ambiente
+Crie um arquivo `.env.local` na raiz com:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://sbwfmxuldrdicvsfbduu.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key_aqui
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui
 ```
 
-Usuários:
+### 3. Configurar o Banco de Dados
+No **SQL Editor** do Supabase Dashboard, execute sequencialmente:
+1. Conteúdo de `supabase/schema.sql` (Criação de tabelas, triggers e bucket de storage)
+2. Conteúdo de `supabase/policies.sql` (Políticas de segurança RLS)
+3. Conteúdo de `supabase/seed.sql` (Para povoar dados de teste após criar contas de login)
 
-- `admin@barbergo.com`
-- `carlos@barbergo.com`
-- `joao@barbergo.com`
-- `rafael@barbergo.com`
-- `contato@barbergocentro.com`
-
-## Como rodar
-
+### 4. Executar o Projeto
+Instale as dependências e inicie o servidor de desenvolvimento:
 ```bash
 npm install
-npm run prisma:generate
-npm run banco:preparar
 npm run dev
 ```
 
-Aplicação:
-
-```text
-http://localhost:3000
-```
-
-## Observações acadêmicas
-
-- O foco do projeto é um **MVP funcional**, simples e escalável.
-- A autenticação usa **cookie de sessão assinado** para simplificar o cenário local.
-- O banco é **SQLite**, ideal para demonstração local e desenvolvimento acadêmico.
-
-## Licença
-
-Projeto desenvolvido para fins acadêmicos.
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador.

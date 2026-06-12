@@ -9,7 +9,7 @@ export async function exigirSessao(tiposPermitidos?: TipoUsuario[]) {
     redirect("/login");
   }
 
-  if (tiposPermitidos && !tiposPermitidos.includes(sessao.tipo)) {
+  if (tiposPermitidos && !tiposPermitidos.includes(sessao.tipoUsuario)) {
     redirect("/");
   }
 

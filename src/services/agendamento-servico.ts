@@ -1,16 +1,32 @@
 import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
 import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
-import type { StatusContratacao } from "@/tipos/enums";
+import type { StatusAgendamento } from "@/tipos/enums";
 
-export const contratacaoServico = {
-  async contratarServico(
-    consumidorId: string,
+export const agendamentoServico = {
+  async obterConsumidorId(usuarioId: string) {
+    const supabase = criarClienteSupabaseServidor();
+    const { data, error } = await supabase
+      .from("consumidores")
+      .select("id")
+      .eq("usuario_id", usuarioId)
+      .single();
+
+    if (error || !data) {
+      throw new ErroAplicacao("Perfil de consumidor não encontrado.", 404);
+    }
+
+    return data.id;
+  },
+
+  async agendarServico(
+    usuarioId: string,
     prestadorId: string,
     agendaId: string,
     servicoId: string,
     observacao?: string
   ) {
     const supabase = criarClienteSupabaseServidor();
+    const consumidorId = await this.obterConsumidorId(usuarioId);
 
     // 1. Verifica se o horário está disponível
     const { data: slot, error: slotError } = await supabase
@@ -25,7 +41,7 @@ export const contratacaoServico = {
     }
 
     if (!slot.disponivel) {
-      throw new ErroAplicacao("Este horário já foi contratado por outra pessoa.", 400);
+      throw new ErroAplicacao("Este horário já foi agendado por outra pessoa.", 400);
     }
 
     // 2. Busca informações do serviço
@@ -40,25 +56,23 @@ export const contratacaoServico = {
       throw new ErroAplicacao("Serviço não encontrado para este prestador.", 400);
     }
 
-    // 3. Cria a contratação
-    const { data: contratacao, error: insertError } = await supabase
-      .from("contratacoes")
+    // 3. Cria o agendamento (status inicial 'pendente')
+    const { data: agendamento, error: insertError } = await supabase
+      .from("agendamentos")
       .insert({
         consumidor_id: consumidorId,
         prestador_id: prestadorId,
         agenda_id: agendaId,
         servico_id: servicoId,
-        data: slot.data,
-        horario: slot.hora_inicio,
         valor: servico.preco,
-        status: "PENDENTE",
+        status: "pendente",
         observacao: observacao ?? null
       })
       .select()
       .single();
 
     if (insertError) {
-      throw new ErroAplicacao("Erro ao registrar a contratação: " + insertError.message, 400);
+      throw new ErroAplicacao("Erro ao registrar agendamento: " + insertError.message, 400);
     }
 
     // 4. Marca o horário como indisponível
@@ -67,19 +81,21 @@ export const contratacaoServico = {
       .update({ disponivel: false })
       .eq("id", agendaId);
 
-    return contratacao;
+    return agendamento;
   },
 
-  async listarContratacoesConsumidor(consumidorId: string) {
+  async listarAgendamentosConsumidor(usuarioId: string) {
     const supabase = criarClienteSupabaseServidor();
+    const consumidorId = await this.obterConsumidorId(usuarioId);
 
     const { data, error } = await supabase
-      .from("contratacoes")
+      .from("agendamentos")
       .select(`
         *,
         prestadores (
           id,
           especialidade,
+          foto_url,
           usuarios (
             nome
           )
@@ -89,8 +105,7 @@ export const contratacaoServico = {
         )
       `)
       .eq("consumidor_id", consumidorId)
-      .order("data", { ascending: false })
-      .order("horario", { ascending: false });
+      .order("criado_em", { ascending: false });
 
     if (error) {
       throw new ErroAplicacao(error.message, 400);
@@ -99,41 +114,44 @@ export const contratacaoServico = {
     return data.map((c: any) => ({
       id: c.id,
       consumidorId: c.consumidor_id,
-      consumidorNome: "", // Preenchido no controller/view se necessário
+      consumidorNome: "",
       consumidorEmail: "",
       prestadorId: c.prestador_id,
       prestadorNome: c.prestadores?.usuarios?.nome ?? "Prestador",
       prestadorEspecialidade: c.prestadores?.especialidade ?? "",
+      prestadorFotoUrl: c.prestadores?.foto_url ?? null,
       agendaId: c.agenda_id,
       servicoId: c.servico_id,
       servicoNome: c.servicos?.nome ?? "Serviço Removido",
-      data: c.data,
-      horario: c.horario,
-      valor: c.valor,
-      status: c.status as StatusContratacao,
+      data: c.data || "", // query from agenda or use the database fields
+      horario: c.horario || "",
+      valor: Number(c.valor),
+      status: c.status as StatusAgendamento,
       observacao: c.observacao,
       criadoEm: c.criado_em
     }));
   },
 
-  async listarContratacoesPrestador(prestadorId: string) {
+  async listarAgendamentosPrestador(prestadorId: string) {
     const supabase = criarClienteSupabaseServidor();
 
     const { data, error } = await supabase
-      .from("contratacoes")
+      .from("agendamentos")
       .select(`
         *,
-        usuarios (
-          nome,
-          email
+        consumidores (
+          id,
+          usuarios (
+            nome,
+            email
+          )
         ),
         servicos (
           nome
         )
       `)
       .eq("prestador_id", prestadorId)
-      .order("data", { ascending: false })
-      .order("horario", { ascending: false });
+      .order("criado_em", { ascending: false });
 
     if (error) {
       throw new ErroAplicacao(error.message, 400);
@@ -142,42 +160,42 @@ export const contratacaoServico = {
     return data.map((c: any) => ({
       id: c.id,
       consumidorId: c.consumidor_id,
-      consumidorNome: c.usuarios?.nome ?? "Cliente",
-      consumidorEmail: c.usuarios?.email ?? "",
+      consumidorNome: c.consumidores?.usuarios?.nome ?? "Cliente",
+      consumidorEmail: c.consumidores?.usuarios?.email ?? "",
       prestadorId: c.prestador_id,
       prestadorNome: "",
       prestadorEspecialidade: "",
       agendaId: c.agenda_id,
       servicoId: c.servico_id,
       servicoNome: c.servicos?.nome ?? "Serviço Removido",
-      data: c.data,
-      horario: c.horario,
-      valor: c.valor,
-      status: c.status as StatusContratacao,
+      data: c.data || "",
+      horario: c.horario || "",
+      valor: Number(c.valor),
+      status: c.status as StatusAgendamento,
       observacao: c.observacao,
       criadoEm: c.criado_em
     }));
   },
 
-  async atualizarStatus(contratacaoId: string, status: StatusContratacao) {
+  async atualizarStatus(agendamentoId: string, status: StatusAgendamento) {
     const supabase = criarClienteSupabaseServidor();
 
-    // 1. Busca a contratação para ver qual era o agendaId
-    const { data: contratacao, error: fetchError } = await supabase
-      .from("contratacoes")
+    // 1. Busca a contratação para ver qual era o agenda_id
+    const { data: agendamento, error: fetchError } = await supabase
+      .from("agendamentos")
       .select("agenda_id, status")
-      .eq("id", contratacaoId)
+      .eq("id", agendamentoId)
       .single();
 
-    if (fetchError || !contratacao) {
-      throw new ErroAplicacao("Contratação não encontrada.", 404);
+    if (fetchError || !agendamento) {
+      throw new ErroAplicacao("Agendamento não encontrado.", 404);
     }
 
     // 2. Atualiza o status
     const { data, error } = await supabase
-      .from("contratacoes")
+      .from("agendamentos")
       .update({ status })
-      .eq("id", contratacaoId)
+      .eq("id", agendamentoId)
       .select()
       .single();
 
@@ -186,11 +204,11 @@ export const contratacaoServico = {
     }
 
     // 3. Se foi cancelado, libera o horário na agenda
-    if (status === "CANCELADO" && contratacao.agenda_id) {
+    if (status === "cancelado" && agendamento.agenda_id) {
       await supabase
         .from("agenda")
         .update({ disponivel: true })
-        .eq("id", contratacao.agenda_id);
+        .eq("id", agendamento.agenda_id);
     }
 
     return data;

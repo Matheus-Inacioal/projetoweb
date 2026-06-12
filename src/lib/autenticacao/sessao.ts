@@ -14,7 +14,7 @@ export async function obterSessaoAtual(): Promise<SessaoUsuario | null> {
 
   const { data: usuario } = await supabase
     .from("usuarios")
-    .select("nome, tipo")
+    .select("nome, tipo_usuario")
     .eq("id", user.id)
     .single();
 
@@ -26,7 +26,7 @@ export async function obterSessaoAtual(): Promise<SessaoUsuario | null> {
     usuarioId: user.id,
     nome: usuario.nome,
     email: user.email ?? "",
-    tipo: usuario.tipo as TipoUsuario
+    tipoUsuario: usuario.tipo_usuario as TipoUsuario
   };
 }
 
@@ -37,7 +37,7 @@ export async function obterSessaoObrigatoriaApi(tiposPermitidos?: TipoUsuario[])
     throw new ErroAplicacao("Usuário não autenticado.", 401);
   }
 
-  if (tiposPermitidos && !tiposPermitidos.includes(sessao.tipo)) {
+  if (tiposPermitidos && !tiposPermitidos.includes(sessao.tipoUsuario)) {
     throw new ErroAplicacao("Você não possui permissão para esta operação.", 403);
   }
 

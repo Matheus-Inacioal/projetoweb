@@ -8,13 +8,13 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const sessao = await exigirSessao();
 
-  if (sessao.tipo === "admin") {
+  if (sessao.tipoUsuario === "admin") {
     redirect("/admin");
   }
 
   return (
     <div>
-      {sessao.tipo === "prestador" ? (
+      {sessao.tipoUsuario === "prestador" ? (
         <DashboardPrestador />
       ) : (
         <DashboardConsumidor />

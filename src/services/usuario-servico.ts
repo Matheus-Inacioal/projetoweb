@@ -18,14 +18,14 @@ export const usuarioServico = {
     let prestadorInfo = null;
     let consumidorInfo = null;
 
-    if (usuario.tipo === "prestador") {
+    if (usuario.tipo_usuario === "prestador") {
       const { data } = await supabase
         .from("prestadores")
         .select("*")
         .eq("usuario_id", usuarioId)
         .single();
       prestadorInfo = data;
-    } else if (usuario.tipo === "consumidor") {
+    } else if (usuario.tipo_usuario === "consumidor") {
       const { data } = await supabase
         .from("consumidores")
         .select("*")
@@ -39,29 +39,23 @@ export const usuarioServico = {
       nome: usuario.nome,
       email: usuario.email,
       telefone: usuario.telefone,
-      fotoUrl: usuario.foto_url,
-      tipo: usuario.tipo,
+      tipoUsuario: usuario.tipo_usuario,
       criadoEm: usuario.criado_em,
+      fotoUrl: prestadorInfo ? prestadorInfo.foto_url : null,
       prestador: prestadorInfo,
       consumidor: consumidorInfo
     };
   },
 
-  async atualizarPerfil(usuarioId: string, dados: { nome: string; telefone: string; fotoUrl?: string | null }) {
+  async atualizarPerfil(usuarioId: string, dados: { nome: string; telefone: string }) {
     const supabase = criarClienteSupabaseServidor();
-
-    const updates: any = {
-      nome: dados.nome,
-      telefone: dados.telefone
-    };
-
-    if (dados.fotoUrl !== undefined) {
-      updates.foto_url = dados.fotoUrl;
-    }
 
     const { data, error } = await supabase
       .from("usuarios")
-      .update(updates)
+      .update({
+        nome: dados.nome,
+        telefone: dados.telefone
+      })
       .eq("id", usuarioId)
       .select()
       .single();
@@ -136,11 +130,19 @@ export const usuarioServico = {
       .from("perfis")
       .getPublicUrl(caminhoArquivo);
 
-    // Salva a URL no perfil do usuário
-    await supabase
-      .from("usuarios")
-      .update({ foto_url: data.publicUrl })
-      .eq("id", usuarioId);
+    // Se for prestador, atualiza foto_url no perfil do prestador
+    const { data: prestador } = await supabase
+      .from("prestadores")
+      .select("id")
+      .eq("usuario_id", usuarioId)
+      .maybeSingle();
+
+    if (prestador) {
+      await supabase
+        .from("prestadores")
+        .update({ foto_url: data.publicUrl })
+        .eq("id", prestador.id);
+    }
 
     return data.publicUrl;
   }

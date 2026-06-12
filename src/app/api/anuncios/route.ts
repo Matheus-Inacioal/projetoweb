@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     let queryPrestadorId = prestadorId;
 
     const sessao = await obterSessaoAtual();
-    if (sessao && sessao.tipo === "prestador" && !prestadorId) {
+    if (sessao && sessao.tipoUsuario === "prestador" && !prestadorId) {
       const prestador = await prestadorServico.obterPrestadorPorUsuarioId(sessao.usuarioId);
       queryPrestadorId = prestador.id;
       apenasAtivos = false; // Prestador visualiza anúncios ativos e inativos dele

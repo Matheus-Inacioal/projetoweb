@@ -33,7 +33,7 @@ export function FormularioPerfil() {
       setTelefone(perfil.telefone || "");
       setFotoUrl(perfil.fotoUrl || null);
 
-      if (perfil.tipo === "prestador" && perfil.prestador) {
+      if (perfil.tipoUsuario === "prestador" && perfil.prestador) {
         setEspecialidade(perfil.prestador.especialidade || "");
         setDescricao(perfil.prestador.descricao || "");
         setEndereco(perfil.prestador.endereco || "");
@@ -73,7 +73,7 @@ export function FormularioPerfil() {
     try {
       const payload: any = { nome, telefone };
 
-      if (perfil.tipo === "prestador") {
+      if (perfil.tipoUsuario === "prestador") {
         payload.especialidade = especialidade;
         payload.descricao = descricao;
         payload.endereco = endereco;
@@ -143,7 +143,7 @@ export function FormularioPerfil() {
       </div>
 
       {/* Informações de Prestador */}
-      {perfil?.tipo === "prestador" && (
+      {perfil?.tipoUsuario === "prestador" && (
         <div className="space-y-4">
           <h3 className="font-serif font-bold text-lg text-texto_principal border-b border-bege_borda pb-2">Informações Profissionais</h3>
           
