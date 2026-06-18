@@ -6,11 +6,11 @@ export function IndicadorStatus({ status }: { status: StatusAgendamento }) {
     <span
       className={clsx(
         "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        status === "confirmado" && "bg-sucesso/10 text-sucesso",
-        status === "pendente" && "bg-destaque/10 text-destaque",
-        status === "concluido" && "bg-primaria/10 text-primaria",
-        status === "cancelado" && "bg-perigo/10 text-perigo",
-        status === "pago" && "bg-sucesso/10 text-sucesso"
+        status === "aguardando_pagamento" && "bg-amber-100 text-amber-800",
+        status === "pendente" && "bg-yellow-100 text-yellow-800",
+        status === "concluido" && "bg-green-100 text-green-800",
+        status === "cancelado" && "bg-red-100 text-red-800",
+        status === "pago" && "bg-purple-100 text-purple-800"
       )}
     >
       {rotulosStatusAgendamento[status]}

@@ -117,4 +117,83 @@ export interface ResumoPainelAdmin {
   totalConsumidores: number;
   totalContratacoes: number;
   totalAnuncios: number;
+  totalServicos: number;
+  totalProdutos: number;
+  totalPagamentos: number;
+  receitaTotal: number;
+  receitaMes: number;
+  ticketMedio: number;
+  quantidadePixPagos: number;
+  quantidadePixPendentes: number;
+}
+
+export interface ProdutoResumo {
+  id: string;
+  prestadorId: string;
+  nome: string;
+  descricao: string;
+  preco: number;
+  estoque: number;
+  imagemUrl: string | null;
+  ativo: boolean;
+  createdAt: string;
+}
+
+export interface CarrinhoItemResumo {
+  id: string;
+  carrinhoId: string;
+  produtoId: string;
+  produtoNome: string;
+  produtoImagemUrl: string | null;
+  quantidade: number;
+  precoUnitario: number;
+}
+
+export interface CarrinhoResumo {
+  id: string;
+  consumidorId: string;
+  createdAt: string;
+  itens: CarrinhoItemResumo[];
+}
+
+export interface PedidoItemResumo {
+  id: string;
+  pedidoId: string;
+  produtoId: string;
+  produtoNome: string;
+  quantidade: number;
+  precoUnitario: number;
+}
+
+export interface PedidoResumo {
+  id: string;
+  consumidorId: string;
+  valorTotal: number;
+  status: string;
+  createdAt: string;
+  itens?: PedidoItemResumo[];
+}
+
+export interface PagamentoResumo {
+  id: string;
+  agendamentoId: string;
+  mercadoPagoPaymentId: string | null;
+  externalReference: string | null;
+  qrCode: string | null;
+  qrCodeBase64: string | null;
+  valor: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface PagamentoProdutoResumo {
+  id: string;
+  pedidoId: string;
+  mercadoPagoPaymentId: string | null;
+  externalReference: string | null;
+  qrCode: string | null;
+  qrCodeBase64: string | null;
+  valor: number;
+  status: string;
+  createdAt: string;
 }

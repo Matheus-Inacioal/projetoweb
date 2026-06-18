@@ -132,13 +132,13 @@ export function DashboardPrestador() {
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         c.status === "pendente" && "bg-yellow-100 text-yellow-800"
                       } ${
-                        c.status === "confirmado" && "bg-blue-100 text-blue-800"
+                        c.status === "aguardando_pagamento" && "bg-amber-100 text-amber-800"
+                      } ${
+                        c.status === "pago" && "bg-purple-100 text-purple-800"
                       } ${
                         c.status === "concluido" && "bg-green-100 text-green-800"
                       } ${
                         c.status === "cancelado" && "bg-red-100 text-red-800"
-                      } ${
-                        c.status === "pago" && "bg-purple-100 text-purple-800"
                       }`}>
                         {c.status.toUpperCase()}
                       </span>
@@ -161,8 +161,8 @@ export function DashboardPrestador() {
                   <div className="flex gap-2">
                     {c.status === "pendente" && (
                       <>
-                        <Botao onClick={() => handleMudarStatus(c.id, "confirmado")} className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700">
-                          Confirmar
+                        <Botao onClick={() => handleMudarStatus(c.id, "pago")} className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700">
+                          Confirmar (Pago)
                         </Botao>
                         <Botao onClick={() => handleMudarStatus(c.id, "cancelado")} variante="perigo" className="px-3 py-1.5 text-xs">
                           Recusar
@@ -170,7 +170,7 @@ export function DashboardPrestador() {
                       </>
                     )}
 
-                    {c.status === "confirmado" && (
+                    {c.status === "pago" && (
                       <>
                         <Botao onClick={() => handleMudarStatus(c.id, "concluido")} className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700">
                           Concluir

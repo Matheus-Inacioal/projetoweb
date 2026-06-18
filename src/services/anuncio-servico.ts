@@ -123,7 +123,7 @@ export const anuncioServico = {
     const caminhoArquivo = `anuncios/${prestadorId}/${Date.now()}.${extensao}`;
 
     const { error: uploadError } = await supabase.storage
-      .from("perfis")
+      .from("anuncios")
       .upload(caminhoArquivo, arquivo, {
         contentType: mimeType,
         upsert: true
@@ -134,7 +134,7 @@ export const anuncioServico = {
     }
 
     const { data } = supabase.storage
-      .from("perfis")
+      .from("anuncios")
       .getPublicUrl(caminhoArquivo);
 
     return data.publicUrl;

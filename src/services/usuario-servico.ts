@@ -116,7 +116,7 @@ export const usuarioServico = {
     const caminhoArquivo = `${usuarioId}/${Date.now()}.${extensao}`;
 
     const { error: uploadError } = await supabase.storage
-      .from("perfis")
+      .from("perfil")
       .upload(caminhoArquivo, arquivo, {
         contentType: mimeType,
         upsert: true
@@ -127,7 +127,7 @@ export const usuarioServico = {
     }
 
     const { data } = supabase.storage
-      .from("perfis")
+      .from("perfil")
       .getPublicUrl(caminhoArquivo);
 
     // Se for prestador, atualiza foto_url no perfil do prestador

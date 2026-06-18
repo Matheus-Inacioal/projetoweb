@@ -64,9 +64,9 @@ export const agendamentoServico = {
         prestador_id: prestadorId,
         agenda_id: agendaId,
         servico_id: servicoId,
-        valor: servico.preco,
+        valor_total: servico.preco,
         status: "pendente",
-        observacao: observacao ?? null
+        observacoes: observacao ?? null
       })
       .select()
       .single();
@@ -102,10 +102,15 @@ export const agendamentoServico = {
         ),
         servicos (
           nome
+        ),
+        agenda (
+          data,
+          hora_inicio,
+          hora_fim
         )
       `)
       .eq("consumidor_id", consumidorId)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new ErroAplicacao(error.message, 400);
@@ -123,12 +128,12 @@ export const agendamentoServico = {
       agendaId: c.agenda_id,
       servicoId: c.servico_id,
       servicoNome: c.servicos?.nome ?? "Serviço Removido",
-      data: c.data || "", // query from agenda or use the database fields
-      horario: c.horario || "",
-      valor: Number(c.valor),
+      data: c.agenda?.data || "",
+      horario: c.agenda?.hora_inicio ? `${c.agenda.hora_inicio.slice(0, 5)} - ${c.agenda.hora_fim.slice(0, 5)}` : "",
+      valor: Number(c.valor_total),
       status: c.status as StatusAgendamento,
-      observacao: c.observacao,
-      criadoEm: c.criado_em
+      observacao: c.observacoes,
+      criadoEm: c.created_at
     }));
   },
 
@@ -148,10 +153,15 @@ export const agendamentoServico = {
         ),
         servicos (
           nome
+        ),
+        agenda (
+          data,
+          hora_inicio,
+          hora_fim
         )
       `)
       .eq("prestador_id", prestadorId)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new ErroAplicacao(error.message, 400);
@@ -168,12 +178,12 @@ export const agendamentoServico = {
       agendaId: c.agenda_id,
       servicoId: c.servico_id,
       servicoNome: c.servicos?.nome ?? "Serviço Removido",
-      data: c.data || "",
-      horario: c.horario || "",
-      valor: Number(c.valor),
+      data: c.agenda?.data || "",
+      horario: c.agenda?.hora_inicio ? `${c.agenda.hora_inicio.slice(0, 5)} - ${c.agenda.hora_fim.slice(0, 5)}` : "",
+      valor: Number(c.valor_total),
       status: c.status as StatusAgendamento,
-      observacao: c.observacao,
-      criadoEm: c.criado_em
+      observacao: c.observacoes,
+      criadoEm: c.created_at
     }));
   },
 

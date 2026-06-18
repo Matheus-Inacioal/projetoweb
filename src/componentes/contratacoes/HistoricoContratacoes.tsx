@@ -40,13 +40,13 @@ export function HistoricoContratacoes() {
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                     c.status === "pendente" && "bg-yellow-100 text-yellow-800"
                   } ${
-                    c.status === "confirmado" && "bg-blue-100 text-blue-800"
+                    c.status === "aguardando_pagamento" && "bg-amber-100 text-amber-800"
+                  } ${
+                    c.status === "pago" && "bg-purple-100 text-purple-800"
                   } ${
                     c.status === "concluido" && "bg-green-100 text-green-800"
                   } ${
                     c.status === "cancelado" && "bg-red-100 text-red-800"
-                  } ${
-                    c.status === "pago" && "bg-purple-100 text-purple-800"
                   }`}>
                     {c.status.toUpperCase()}
                   </span>
@@ -65,7 +65,7 @@ export function HistoricoContratacoes() {
                 )}
               </div>
 
-              {(c.status === "pendente" || c.status === "confirmado") && (
+              {(c.status === "pendente" || c.status === "aguardando_pagamento" || c.status === "pago") && (
                 <button
                   onClick={() => handleCancelar(c.id)}
                   className="botao-secundario text-xs text-red-600 border-red-200 hover:bg-red-50 py-2 px-4 rounded-xl"
