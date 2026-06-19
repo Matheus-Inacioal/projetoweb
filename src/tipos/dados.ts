@@ -111,6 +111,16 @@ export interface AnuncioResumo {
   criadoEm: string;
 }
 
+export interface SerieMensal {
+  rotulo: string;
+  valor: number;
+}
+
+export interface SerieItem {
+  nome: string;
+  quantidade: number;
+}
+
 export interface ResumoPainelAdmin {
   totalUsuarios: number;
   totalPrestadores: number;
@@ -125,6 +135,12 @@ export interface ResumoPainelAdmin {
   ticketMedio: number;
   quantidadePixPagos: number;
   quantidadePixPendentes: number;
+  contratacoesPorMes: SerieMensal[];
+  receitaMensal: SerieMensal[];
+  servicosMaisContratados: SerieItem[];
+  produtosMaisVendidos: SerieItem[];
+  prestadoresMaisContratados: SerieItem[];
+  evolucaoUsuarios: SerieMensal[];
 }
 
 export interface ProdutoResumo {
