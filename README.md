@@ -9,7 +9,6 @@ Plataforma web acadêmica completa para **marketplace de barbearias**, conectand
 | Nome | Matrícula |
 |------|-----------|
 | **Matheus Inacio de Almeida Arruda** | UC22200674 |
-| **Wellington Gabriel Menezes da Silva** | UC22101982 |
 
 ---
 
