@@ -113,7 +113,9 @@ export default function RelatoriosPage() {
   });
 
   // KPI Calculations
-  const totalFaturamento = dadosFiltrados.filter(d => d.status === "pago" || d.status === "aprovado" || d.status === "entregue").reduce((acc, curr) => acc + curr.valor, 0);
+  const totalFaturamento = dadosFiltrados
+    .filter(d => ["confirmado", "remarcado", "concluido", "pago", "aprovado", "entregue"].includes(d.status))
+    .reduce((acc, curr) => acc + curr.valor, 0);
   const quantidadeVendas = dadosFiltrados.length;
   const totalAgendamentos = dadosFiltrados.filter(d => d.tipo === "Serviço").length;
   const totalProdutos = dadosFiltrados.filter(d => d.tipo === "Produto").length;
@@ -307,7 +309,11 @@ export default function RelatoriosPage() {
               ) : (
                 dadosFiltrados.map((item, idx) => (
                   <tr key={idx} className="hover:bg-bege_borda/10 transition print:hover:bg-transparent">
-                    <td className="p-4 font-medium">{item.data.split("-").reverse().join("/")}</td>
+                    <td className="p-4 font-medium">
+                      {item.data && item.data.includes("-") 
+                        ? item.data.split("-").reverse().join("/") 
+                        : item.data || "--/--/----"}
+                    </td>
                     <td className="p-4">
                       <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-semibold ${
                         item.tipo === "Serviço" ? "bg-indigo-50 text-indigo-700" : "bg-cyan-50 text-cyan-700"

@@ -18,12 +18,12 @@ if (!isMockMode) {
 }
 
 export const pagamentoServico = {
-  async criarPagamentoAgendamento(agendamentoId: string) {
+  async criarPagamentoContratacao(contratacaoId: string) {
     const supabase = criarClienteSupabaseServidor();
 
     // 1. Busca dados do agendamento
     const { data: ag, error: agError } = await supabase
-      .from("agendamentos")
+      .from("contratacoes")
       .select(`
         *,
         consumidores (
@@ -36,11 +36,16 @@ export const pagamentoServico = {
           nome
         )
       `)
-      .eq("id", agendamentoId)
+      .eq("id", contratacaoId)
       .single();
 
     if (agError || !ag) {
-      throw new ErroAplicacao("Agendamento não encontrado para gerar pagamento.", 404);
+      throw new ErroAplicacao("Contratação não encontrada para gerar pagamento.", 404);
+    }
+
+    // Validação: permitir PIX apenas para status 'confirmado' ou 'remarcado'
+    if (ag.status !== "confirmado" && ag.status !== "remarcado") {
+      throw new ErroAplicacao("O pagamento PIX só pode ser gerado após a contratação ser confirmada ou remarcada pelo prestador.", 400);
     }
 
     const valor = Number(ag.valor_total);
@@ -52,7 +57,7 @@ export const pagamentoServico = {
     const { data: pagamentoExistente } = await supabase
       .from("pagamentos")
       .select("*")
-      .eq("agendamento_id", agendamentoId)
+      .eq("contratacao_id", contratacaoId)
       .maybeSingle();
 
     if (pagamentoExistente) {
@@ -66,7 +71,7 @@ export const pagamentoServico = {
     }
 
     let mpId = `MOCK-PAY-${Date.now()}`;
-    let extRef = `AG-${agendamentoId}`;
+    let extRef = `AG-${contratacaoId}`;
     let qrCode = "00020101021226870014br.gov.bcb.pix2565pix.mercado-pago.com.br/qr/mock-pix-payload-barbergo-ag-payment";
     let qrCodeBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; // 1x1 png transparente
 
@@ -97,7 +102,7 @@ export const pagamentoServico = {
 
     // 3. Salva ou atualiza na tabela pagamentos
     const dadosPagamento = {
-      agendamento_id: agendamentoId,
+      contratacao_id: contratacaoId,
       mercado_pago_payment_id: mpId,
       external_reference: extRef,
       qr_code: qrCode,
@@ -125,12 +130,6 @@ export const pagamentoServico = {
       if (insError) throw new ErroAplicacao(insError.message, 400);
       data = res;
     }
-
-    // Atualiza status do agendamento para aguardando_pagamento
-    await supabase
-      .from("agendamentos")
-      .update({ status: "aguardando_pagamento" })
-      .eq("id", agendamentoId);
 
     return data;
   },
@@ -285,7 +284,7 @@ export const pagamentoServico = {
     // 1. Verifica se o pagamento é de Agendamento (external_reference starts with AG-)
     const { data: pagAg } = await supabase
       .from("pagamentos")
-      .select("*")
+      .select("*, contratacoes(*, consumidores(*))")
       .eq("mercado_pago_payment_id", String(paymentId))
       .maybeSingle();
 
@@ -296,11 +295,16 @@ export const pagamentoServico = {
         .eq("id", pagAg.id);
 
       if (!updErr && statusNovo === "aprovado") {
-        // Confirma o agendamento
-        await supabase
-          .from("agendamentos")
-          .update({ status: "pago" })
-          .eq("id", pagAg.agendamento_id);
+        if (pagAg.contratacoes) {
+          await supabase.from("historico_contratacoes").insert({
+            contratacao_id: pagAg.contratacao_id,
+            usuario_id: pagAg.contratacoes.consumidores?.usuario_id,
+            acao: "Pagamento Aprovado",
+            status_anterior: pagAg.contratacoes.status,
+            status_novo: pagAg.contratacoes.status,
+            observacao: `Pagamento PIX de R$ ${pagAg.valor} aprovado.`
+          });
+        }
       }
       return { processado: true, tipo: "agendamento", status: statusNovo };
     }

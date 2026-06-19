@@ -31,7 +31,7 @@ export function DetalhesPrestador({ prestadorId }: { prestadorId: string }) {
   const [erroAgendamento, setErroAgendamento] = useState<string | null>(null);
 
   // 4. Carrega horários disponíveis para a data selecionada
-  const urlAgenda = dataSelecionada ? `/api/agenda?prestadorId=${prestadorId}&data=${dataSelecionada}` : null;
+  const urlAgenda = dataSelecionada ? `/api/agenda?prestadorId=${prestadorId}&data=${dataSelecionada}&disponivel=true` : null;
   const { dados: slotsDisponiveis, carregando: carregandoAgenda } = useBuscarDados<any[]>(urlAgenda);
 
   const { executar: favoritar } = useMutacao<any, any>("/api/favoritos", "POST");

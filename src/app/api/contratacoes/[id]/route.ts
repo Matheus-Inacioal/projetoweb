@@ -8,15 +8,33 @@ export const dynamic = "force-dynamic";
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    await obterSessaoObrigatoriaApi(["prestador", "consumidor"]);
-    const { status } = await request.json();
+    const sessao = await obterSessaoObrigatoriaApi(["prestador", "consumidor"]);
+    const body = await request.json();
+    const { acao, status, observacao, novaAgendaId, aceito } = body;
 
-    if (!status) {
-      throw new ErroAplicacao("Status é obrigatório.", 400);
+    let agendamento;
+    if (acao === "aprovar") {
+      agendamento = await agendamentoServico.aprovarContratacao(params.id, sessao.usuarioId);
+    } else if (acao === "recusar") {
+      agendamento = await agendamentoServico.recusarContratacao(params.id, sessao.usuarioId, observacao);
+    } else if (acao === "remarcar") {
+      if (!novaAgendaId) {
+        throw new ErroAplicacao("Horário de remarcação é obrigatório.", 400);
+      }
+      agendamento = await agendamentoServico.solicitarRemarcacao(params.id, sessao.usuarioId, novaAgendaId, observacao);
+    } else if (acao === "responder_remarcacao") {
+      if (aceito === undefined) {
+        throw new ErroAplicacao("Resposta de aceitação/recusa é obrigatória.", 400);
+      }
+      agendamento = await agendamentoServico.responderRemarcacao(params.id, sessao.usuarioId, aceito);
+    } else {
+      if (!status) {
+        throw new ErroAplicacao("Ação ou Status é obrigatório.", 400);
+      }
+      agendamento = await agendamentoServico.atualizarStatus(params.id, status as StatusAgendamento, sessao.usuarioId, observacao);
     }
 
-    const agendamento = await agendamentoServico.atualizarStatus(params.id, status as StatusAgendamento);
-    return responderSucesso(agendamento, `Status do agendamento atualizado para ${status} com sucesso.`);
+    return responderSucesso(agendamento, `Ação de contratação processada com sucesso.`);
   } catch (erro) {
     return responderErro(erro);
   }

@@ -101,25 +101,32 @@ create policy "Agenda - visualizacao geral" on agenda for select
 create policy "Agenda - prestador gerencia propria" on agenda for all to authenticated
   using (exists (select 1 from prestadores p where p.id = prestador_id and p.usuario_id = auth.uid()));
 
--- 3.6 agendamentos
-drop policy if exists "Agendamentos - acesso total admin" on agendamentos;
-drop policy if exists "Agendamentos - consumidor cria" on agendamentos;
-drop policy if exists "Agendamentos - consumidor visualiza proprio" on agendamentos;
-drop policy if exists "Agendamentos - consumidor atualiza proprio" on agendamentos;
-drop policy if exists "Agendamentos - prestador visualiza recebidos" on agendamentos;
-drop policy if exists "Agendamentos - prestador atualiza recebidos" on agendamentos;
+-- 3.6 contratacoes
+drop policy if exists "Agendamentos - acesso total admin" on contratacoes;
+drop policy if exists "Agendamentos - consumidor cria" on contratacoes;
+drop policy if exists "Agendamentos - consumidor visualiza proprio" on contratacoes;
+drop policy if exists "Agendamentos - consumidor atualiza proprio" on contratacoes;
+drop policy if exists "Agendamentos - prestador visualiza recebidos" on contratacoes;
+drop policy if exists "Agendamentos - prestador atualiza recebidos" on contratacoes;
 
-create policy "Agendamentos - acesso total admin" on agendamentos for all to authenticated
+drop policy if exists "Contratacoes - acesso total admin" on contratacoes;
+drop policy if exists "Contratacoes - consumidor cria" on contratacoes;
+drop policy if exists "Contratacoes - consumidor visualiza proprio" on contratacoes;
+drop policy if exists "Contratacoes - consumidor atualiza proprio" on contratacoes;
+drop policy if exists "Contratacoes - prestador visualiza recebidos" on contratacoes;
+drop policy if exists "Contratacoes - prestador atualiza recebidos" on contratacoes;
+
+create policy "Contratacoes - acesso total admin" on contratacoes for all to authenticated
   using (public.eh_admin(auth.uid()));
-create policy "Agendamentos - consumidor cria" on agendamentos for insert to authenticated
+create policy "Contratacoes - consumidor cria" on contratacoes for insert to authenticated
   with check (exists (select 1 from consumidores c where c.id = consumidor_id and c.usuario_id = auth.uid()));
-create policy "Agendamentos - consumidor visualiza proprio" on agendamentos for select to authenticated
+create policy "Contratacoes - consumidor visualiza proprio" on contratacoes for select to authenticated
   using (exists (select 1 from consumidores c where c.id = consumidor_id and c.usuario_id = auth.uid()));
-create policy "Agendamentos - consumidor atualiza proprio" on agendamentos for update to authenticated
+create policy "Contratacoes - consumidor atualiza proprio" on contratacoes for update to authenticated
   using (exists (select 1 from consumidores c where c.id = consumidor_id and c.usuario_id = auth.uid()));
-create policy "Agendamentos - prestador visualiza recebidos" on agendamentos for select to authenticated
+create policy "Contratacoes - prestador visualiza recebidos" on contratacoes for select to authenticated
   using (exists (select 1 from prestadores p where p.id = prestador_id and p.usuario_id = auth.uid()));
-create policy "Agendamentos - prestador atualiza recebidos" on agendamentos for update to authenticated
+create policy "Contratacoes - prestador atualiza recebidos" on contratacoes for update to authenticated
   using (exists (select 1 from prestadores p where p.id = prestador_id and p.usuario_id = auth.uid()));
 
 -- 3.7 pagamentos
@@ -131,16 +138,16 @@ create policy "Pagamentos - acesso total admin" on pagamentos for all to authent
   using (public.eh_admin(auth.uid()));
 create policy "Pagamentos - consumidor cria" on pagamentos for insert to authenticated
   with check (exists (
-    select 1 from agendamentos ag
+    select 1 from contratacoes ag
     join consumidores c on c.id = ag.consumidor_id
-    where ag.id = agendamento_id and c.usuario_id = auth.uid()
+    where ag.id = contratacao_id and c.usuario_id = auth.uid()
   ));
 create policy "Pagamentos - visualizacao relacionada" on pagamentos for select to authenticated
   using (exists (
-    select 1 from agendamentos ag
+    select 1 from contratacoes ag
     left join consumidores c on c.id = ag.consumidor_id
     left join prestadores p on p.id = ag.prestador_id
-    where ag.id = agendamento_id and (c.usuario_id = auth.uid() or p.usuario_id = auth.uid())
+    where ag.id = contratacao_id and (c.usuario_id = auth.uid() or p.usuario_id = auth.uid())
   ));
 
 -- 3.8 avaliacoes
@@ -206,6 +213,7 @@ drop policy if exists "Pedidos - acesso total admin" on pedidos;
 drop policy if exists "Pedidos - consumidor gerencia proprios" on pedidos;
 drop policy if exists "PedidoItens - acesso total admin" on pedido_itens;
 drop policy if exists "PedidoItens - consumidor visualiza" on pedido_itens;
+drop policy if exists "PedidoItens - consumidor cria" on pedido_itens;
 
 create policy "Pedidos - acesso total admin" on pedidos for all to authenticated
   using (public.eh_admin(auth.uid()));
@@ -219,15 +227,28 @@ create policy "PedidoItens - consumidor visualiza" on pedido_itens for select to
     join consumidores c on c.id = pd.consumidor_id
     where pd.id = pedido_id and c.usuario_id = auth.uid()
   ));
+create policy "PedidoItens - consumidor cria" on pedido_itens for insert to authenticated
+  with check (exists (
+    select 1 from pedidos pd
+    join consumidores c on c.id = pd.consumidor_id
+    where pd.id = pedido_id and c.usuario_id = auth.uid()
+  ));
 
 -- 3.14 pagamentos_produtos
 drop policy if exists "PagProdutos - acesso total admin" on pagamentos_produtos;
 drop policy if exists "PagProdutos - consumidor visualiza" on pagamentos_produtos;
+drop policy if exists "PagProdutos - consumidor cria" on pagamentos_produtos;
 
 create policy "PagProdutos - acesso total admin" on pagamentos_produtos for all to authenticated
   using (public.eh_admin(auth.uid()));
 create policy "PagProdutos - consumidor visualiza" on pagamentos_produtos for select to authenticated
   using (exists (
+    select 1 from pedidos pd
+    join consumidores c on c.id = pd.consumidor_id
+    where pd.id = pedido_id and c.usuario_id = auth.uid()
+  ));
+create policy "PagProdutos - consumidor cria" on pagamentos_produtos for insert to authenticated
+  with check (exists (
     select 1 from pedidos pd
     join consumidores c on c.id = pd.consumidor_id
     where pd.id = pedido_id and c.usuario_id = auth.uid()
@@ -244,3 +265,26 @@ create policy "Storage - insert por autenticados" on storage.objects for insert 
   with check (bucket_id in ('perfil', 'produtos', 'anuncios'));
 create policy "Storage - delete por autenticados" on storage.objects for delete to authenticated
   using (bucket_id in ('perfil', 'produtos', 'anuncios'));
+
+-- 3.16 historico_contratacoes
+drop policy if exists "Historico - acesso total admin" on historico_contratacoes;
+drop policy if exists "Historico - consumidor visualiza relacionado" on historico_contratacoes;
+drop policy if exists "Historico - prestador visualiza relacionado" on historico_contratacoes;
+drop policy if exists "Historico - autenticados criam logs" on historico_contratacoes;
+
+create policy "Historico - acesso total admin" on historico_contratacoes for all to authenticated
+  using (public.eh_admin(auth.uid()));
+create policy "Historico - consumidor visualiza relacionado" on historico_contratacoes for select to authenticated
+  using (exists (
+    select 1 from contratacoes c
+    join consumidores co on co.id = c.consumidor_id
+    where c.id = contratacao_id and co.usuario_id = auth.uid()
+  ));
+create policy "Historico - prestador visualiza relacionado" on historico_contratacoes for select to authenticated
+  using (exists (
+    select 1 from contratacoes c
+    join prestadores pr on pr.id = c.prestador_id
+    where c.id = contratacao_id and pr.usuario_id = auth.uid()
+  ));
+create policy "Historico - autenticados criam logs" on historico_contratacoes for insert to authenticated
+  with check (auth.uid() = usuario_id);

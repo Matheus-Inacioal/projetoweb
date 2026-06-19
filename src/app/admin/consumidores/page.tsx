@@ -20,8 +20,8 @@ interface Consumidor {
 
 interface AgendamentoHistorico {
   id: string;
-  agenda_data: string;
-  hora_inicio: string;
+  agenda_data: string | null;
+  hora_inicio: string | null;
   status: string;
   valor: number;
   servico_nome: string;
@@ -94,12 +94,12 @@ export default function ConsumidoresAdminPage() {
       setAgendamentos(
         (ags || []).map((a: any) => ({
           id: a.agendamento_id,
-          agenda_data: a.agenda_data,
-          hora_inicio: a.hora_inicio,
-          status: a.status,
-          valor: Number(a.valor),
-          servico_nome: a.servico_nome,
-          prestador_nome: a.prestador_nome
+          agenda_data: a.agenda_data || null,
+          hora_inicio: a.hora_inicio || null,
+          status: a.status || "pendente",
+          valor: Number(a.valor || 0),
+          servico_nome: a.servico_nome || "Serviço Removido",
+          prestador_nome: a.prestador_nome || "Barbeiro Removido"
         }))
       );
 
@@ -143,9 +143,22 @@ export default function ConsumidoresAdminPage() {
     return nome.toLowerCase().includes(query) || email.toLowerCase().includes(query);
   });
 
-  const formatarData = (dataSql: string) => {
-    if (!dataSql) return "";
-    return new Date(dataSql).toLocaleDateString("pt-BR");
+  const formatarData = (dataSql?: string | null) => {
+    if (!dataSql) return "--/--/----";
+    try {
+      // If it contains a "T" or timezone info, it's a full ISO timestamp
+      if (dataSql.includes("T") || dataSql.includes("+") || dataSql.includes("Z")) {
+        return new Date(dataSql).toLocaleDateString("pt-BR");
+      }
+      // If it is just a date string like YYYY-MM-DD
+      const partes = dataSql.split("-");
+      if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+      return new Date(dataSql).toLocaleDateString("pt-BR");
+    } catch {
+      return dataSql;
+    }
   };
 
   return (
@@ -273,7 +286,7 @@ export default function ConsumidoresAdminPage() {
                             <div>
                               <p className="font-semibold text-verde_petroleo">{a.servico_nome}</p>
                               <p className="text-xs text-texto_secundario">Barbeiro: {a.prestador_nome}</p>
-                              <p className="text-xs text-texto_secundario">Data/Hora: {formatarData(a.agenda_data)} às {a.hora_inicio.slice(0,5)}</p>
+                              <p className="text-xs text-texto_secundario">Data/Hora: {formatarData(a.agenda_data)} às {a.hora_inicio?.slice(0, 5) || "--:--"}</p>
                             </div>
                             <div className="text-right">
                               <span className="font-serif font-bold text-verde_escuro">R$ {a.valor.toFixed(2)}</span>
@@ -298,7 +311,7 @@ export default function ConsumidoresAdminPage() {
                         {pedidos.map((p) => (
                           <div key={p.id} className="p-4 bg-off_white flex items-center justify-between text-sm">
                             <div>
-                              <p className="font-semibold text-verde_petroleo">Pedido ID: #{p.id.slice(0, 8).toUpperCase()}</p>
+                              <p className="font-semibold text-verde_petroleo">Pedido ID: #{p.id?.slice(0, 8).toUpperCase() || "REMOVIDO"}</p>
                               <p className="text-xs text-texto_secundario">Data da Compra: {formatarData(p.created_at)}</p>
                             </div>
                             <div className="text-right">

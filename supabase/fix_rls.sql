@@ -10,7 +10,8 @@ drop policy if exists "Prestadores - acesso total admin" on prestadores;
 drop policy if exists "Consumidores - acesso total admin" on consumidores;
 drop policy if exists "Servicos - acesso total admin" on servicos;
 drop policy if exists "Agenda - acesso total admin" on agenda;
-drop policy if exists "Agendamentos - acesso total admin" on agendamentos;
+drop policy if exists "Agendamentos - acesso total admin" on contratacoes;
+drop policy if exists "Contratacoes - acesso total admin" on contratacoes;
 drop policy if exists "Pagamentos - acesso total admin" on pagamentos;
 drop policy if exists "Avaliacoes - acesso total admin" on avaliacoes;
 drop policy if exists "Favoritos - acesso total admin" on favoritos;
@@ -53,7 +54,7 @@ create policy "Servicos - acesso total admin" on servicos for all to authenticat
 create policy "Agenda - acesso total admin" on agenda for all to authenticated
   using (public.eh_admin(auth.uid()));
 
-create policy "Agendamentos - acesso total admin" on agendamentos for all to authenticated
+create policy "Contratacoes - acesso total admin" on contratacoes for all to authenticated
   using (public.eh_admin(auth.uid()));
 
 create policy "Pagamentos - acesso total admin" on pagamentos for all to authenticated

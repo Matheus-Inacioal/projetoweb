@@ -67,7 +67,7 @@ export const favoritoServico = {
         id,
         consumidor_id,
         prestador_id,
-        criado_em,
+        created_at,
         prestadores (
           id,
           especialidade,
@@ -90,7 +90,7 @@ export const favoritoServico = {
       prestadorNome: f.prestadores?.usuarios?.nome ?? "Prestador",
       prestadorEspecialidade: f.prestadores?.especialidade ?? "",
       prestadorFotoUrl: f.prestadores?.foto_url ?? null,
-      criadoEm: f.criado_em
+      criadoEm: f.created_at
     }));
   },
 

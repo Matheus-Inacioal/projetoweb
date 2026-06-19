@@ -3,7 +3,7 @@ import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
 import type { TipoUsuario } from "@/tipos/enums";
 
 export const autenticacaoServico = {
-  async cadastrar(email: string, aSenha: string, nome: string, telefone: string, tipo: TipoUsuario) {
+  async cadastrar(email: string, aSenha: string, nome: string, telefone: string, tipo: TipoUsuario, metadataExtra?: Record<string, any>) {
     const supabase = criarClienteSupabaseServidor();
 
     // 1. Cadastra no Supabase Auth com tipo_usuario na metadata para o trigger handle_new_user()
@@ -14,7 +14,8 @@ export const autenticacaoServico = {
         data: {
           nome,
           telefone,
-          tipo_usuario: tipo
+          tipo_usuario: tipo,
+          ...metadataExtra
         }
       }
     });

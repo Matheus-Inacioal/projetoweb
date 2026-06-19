@@ -9,9 +9,9 @@ import toast from "react-hot-toast";
 interface AgendaSlot {
   id: string;
   prestador_id: string;
-  data: string;
-  hora_inicio: string;
-  hora_fim: string;
+  data: string | null;
+  hora_inicio: string | null;
+  hora_fim: string | null;
   disponivel: boolean;
   prestadores: {
     usuarios: {
@@ -162,9 +162,11 @@ export default function AgendaAdminPage() {
   const slotsOcupados = filtrados.filter(s => !s.disponivel).length;
   const taxaOcupacao = totalSlots > 0 ? (slotsOcupados / totalSlots) * 100 : 0;
 
-  const formatarData = (dataSql: string) => {
-    if (!dataSql) return "";
-    const [ano, mes, dia] = dataSql.split("-");
+  const formatarData = (dataSql?: string | null) => {
+    if (!dataSql) return "--/--/----";
+    const partes = dataSql.split("-");
+    if (partes.length < 3) return dataSql;
+    const [ano, mes, dia] = partes;
     return `${dia}/${mes}/${ano}`;
   };
 
@@ -286,8 +288,8 @@ export default function AgendaAdminPage() {
                     <td className="p-4 text-texto_secundario font-medium">
                       {formatarData(s.data)}
                     </td>
-                    <td className="p-4 text-texto_secundario">{s.hora_inicio.slice(0, 5)}</td>
-                    <td className="p-4 text-texto_secundario">{s.hora_fim.slice(0, 5)}</td>
+                    <td className="p-4 text-texto_secundario">{s.hora_inicio?.slice(0, 5) || "--:--"}</td>
+                    <td className="p-4 text-texto_secundario">{s.hora_fim?.slice(0, 5) || "--:--"}</td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         s.disponivel ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"

@@ -17,6 +17,7 @@ export const usuarioServico = {
 
     let prestadorInfo = null;
     let consumidorInfo = null;
+    let gestorInfo = null;
 
     if (usuario.tipo_usuario === "prestador") {
       const { data } = await supabase
@@ -32,6 +33,13 @@ export const usuarioServico = {
         .eq("usuario_id", usuarioId)
         .single();
       consumidorInfo = data;
+    } else if (usuario.tipo_usuario === "gestor_loja") {
+      const { data } = await supabase
+        .from("gestores")
+        .select("*, lojas(*)")
+        .eq("usuario_id", usuarioId)
+        .single();
+      gestorInfo = data;
     }
 
     return {
@@ -40,10 +48,11 @@ export const usuarioServico = {
       email: usuario.email,
       telefone: usuario.telefone,
       tipoUsuario: usuario.tipo_usuario,
-      criadoEm: usuario.criado_em,
+      criadoEm: usuario.created_at,
       fotoUrl: prestadorInfo ? prestadorInfo.foto_url : null,
       prestador: prestadorInfo,
-      consumidor: consumidorInfo
+      consumidor: consumidorInfo,
+      gestor: gestorInfo
     };
   },
 

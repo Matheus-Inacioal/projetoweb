@@ -17,7 +17,7 @@ export const anuncioServico = {
           )
         )
       `)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (filtros?.prestadorId) {
       query = query.eq("prestador_id", filtros.prestadorId);
@@ -42,7 +42,7 @@ export const anuncioServico = {
       descricao: a.descricao,
       imagemUrl: a.imagem_url,
       ativo: a.ativo,
-      criadoEm: a.criado_em
+      criadoEm: a.created_at
     }));
   },
 
