@@ -146,10 +146,13 @@ export interface ResumoPainelAdmin {
 export interface ProdutoResumo {
   id: string;
   prestadorId: string;
+  lojaId?: string;
   nome: string;
   descricao: string;
   preco: number;
   estoque: number;
+  estoqueMinimo?: number;
+  categoria?: string | null;
   imagemUrl: string | null;
   ativo: boolean;
   createdAt: string;
@@ -192,13 +195,25 @@ export interface PedidoResumo {
 
 export interface PagamentoResumo {
   id: string;
-  agendamentoId: string;
+  contratacaoId: string;
   mercadoPagoPaymentId: string | null;
   externalReference: string | null;
   qrCode: string | null;
   qrCodeBase64: string | null;
   valor: number;
   status: string;
+  createdAt: string;
+}
+
+export interface HistoricoContratacao {
+  id: string;
+  contratacaoId: string;
+  usuarioId: string;
+  usuarioNome?: string;
+  acao: string;
+  statusAnterior: string | null;
+  statusNovo: string;
+  observacao: string | null;
   createdAt: string;
 }
 
@@ -213,3 +228,49 @@ export interface PagamentoProdutoResumo {
   status: string;
   createdAt: string;
 }
+
+export interface Loja {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  cnpj: string | null;
+  telefone: string | null;
+  email: string | null;
+  endereco: string | null;
+  cidade: string | null;
+  estado: string | null;
+  cep: string | null;
+  logoUrl: string | null;
+  capaUrl: string | null;
+  ativo: boolean;
+  createdAt: string;
+}
+
+export interface Gestor {
+  id: string;
+  usuarioId: string;
+  lojaId: string;
+  createdAt: string;
+}
+
+export interface Comissao {
+  id: string;
+  prestadorId: string;
+  prestadorNome?: string;
+  contratacaoId: string;
+  percentual: number;
+  valor: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface LojaResumo {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  logoUrl: string | null;
+  avaliacaoMedia: number;
+  cidade: string | null;
+  quantidadeServicos: number;
+}
+

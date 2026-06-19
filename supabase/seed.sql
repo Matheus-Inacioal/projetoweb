@@ -1,6 +1,6 @@
 -- ============================================================
 -- BarberGo — Seed SQL (Dados de Demonstração)
--- Versão: 3.0 — Compatível com Supabase Auth e Enums V2
+-- Versão: 4.0 — Compatível com Evolução Multi-Lojas e Comissões
 -- ============================================================
 -- Execute APÓS o schema.sql
 -- ============================================================
@@ -14,21 +14,31 @@ delete from auth.users where email in (
   'joao@barbergo.com',
   'pedro@barbergo.com',
   'maria@barbergo.com',
-  'carlos@barbergo.com'
+  'carlos@barbergo.com',
+  'gestor1@barbergo.com',
+  'gestor2@barbergo.com'
 );
 
 -- ============================================================
--- 2. INSERIR USUÁRIOS NO AUTH (Supabase)
+-- 2. INSERIR LOJAS (ESTABELECIMENTOS)
+-- ============================================================
+
+insert into public.lojas (id, nome, descricao, cnpj, telefone, email, endereco, cidade, estado, cep, ativo)
+values
+  ('00000000-0000-0000-0000-000000000000', 'BarberGo Matriz', 'Loja principal e modelo do marketplace BarberGo.', '12.345.678/0001-90', '(85) 3222-1111', 'matriz@barbergo.com', 'Av. Dom Luís, 500 - Aldeota', 'Fortaleza', 'CE', '60160-230', true),
+  ('11111111-1111-1111-1111-111111111111', 'Barbearia Imperial', 'O clássico e o moderno unidos em um só lugar.', '98.765.432/0001-10', '(85) 3444-2222', 'imperial@barbergo.com', 'Av. Washington Soares, 1500 - Edson Queiroz', 'Fortaleza', 'CE', '60811-341', true);
+
+-- ============================================================
+-- 3. INSERIR USUÁRIOS NO AUTH (Supabase)
 -- ============================================================
 -- Senha padrão para todos: 123456
--- Hash bcrypt: $2a$10$wE4j7n6gOEqH1aP8uM9XWutN/vpxG2P0HmWl19cK6zZf9YhS2p2/W
--- UUIDs no formato v4 válido
+-- Hash bcrypt: $2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y
 
 insert into auth.users (
   id, instance_id, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, is_super_admin, role, aud, created_at, updated_at
 ) values
-  -- Admin
+  -- Admin Geral
   ('a0000000-0000-4000-8000-000000000000', '00000000-0000-0000-0000-000000000000',
    'admin@barbergo.com',
    '$2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y',
@@ -37,22 +47,40 @@ insert into auth.users (
    '{"nome":"Gerente Admin","tipo_usuario":"admin"}',
    false, 'authenticated', 'authenticated', now(), now()),
 
-  -- Prestador 1 (João Barbeiro)
+  -- Gestor 1 (BarberGo Matriz)
+  ('f0000000-0000-4000-8000-000000000000', '00000000-0000-0000-0000-000000000000',
+   'gestor1@barbergo.com',
+   '$2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y',
+   now(),
+   '{"provider":"email","providers":["email"]}',
+   '{"nome":"Roberto Gestor","tipo_usuario":"gestor_loja","loja_id":"00000000-0000-0000-0000-000000000000"}',
+   false, 'authenticated', 'authenticated', now(), now()),
+
+  -- Gestor 2 (Barbearia Imperial)
+  ('f0000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000',
+   'gestor2@barbergo.com',
+   '$2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y',
+   now(),
+   '{"provider":"email","providers":["email"]}',
+   '{"nome":"Felipe Gestor","tipo_usuario":"gestor_loja","loja_id":"11111111-1111-1111-1111-111111111111"}',
+   false, 'authenticated', 'authenticated', now(), now()),
+
+  -- Prestador 1 (João Barbeiro - BarberGo Matriz)
   ('b0000000-0000-4000-8000-000000000000', '00000000-0000-0000-0000-000000000000',
    'joao@barbergo.com',
    '$2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y',
    now(),
    '{"provider":"email","providers":["email"]}',
-   '{"nome":"João Barbeiro","tipo_usuario":"prestador","telefone":"(85) 99999-1111"}',
+   '{"nome":"João Barbeiro","tipo_usuario":"prestador","telefone":"(85) 99999-1111","loja_id":"00000000-0000-0000-0000-000000000000"}',
    false, 'authenticated', 'authenticated', now(), now()),
 
-  -- Prestador 2 (Pedro Navalha)
+  -- Prestador 2 (Pedro Navalha - Barbearia Imperial)
   ('c0000000-0000-4000-8000-000000000000', '00000000-0000-0000-0000-000000000000',
    'pedro@barbergo.com',
    '$2a$10$rO8il4uLBnH8wsaDeOZZOeQyTZOIc64h3NGGc3Xbw0UUKJEp7ez8y',
    now(),
    '{"provider":"email","providers":["email"]}',
-   '{"nome":"Pedro Navalha","tipo_usuario":"prestador","telefone":"(85) 99999-2222"}',
+   '{"nome":"Pedro Navalha","tipo_usuario":"prestador","telefone":"(85) 99999-2222","loja_id":"11111111-1111-1111-1111-111111111111"}',
    false, 'authenticated', 'authenticated', now(), now()),
 
   -- Consumidor 1 (Maria Silva)
@@ -76,7 +104,7 @@ insert into auth.users (
 -- ============================================================
 -- CORREÇÃO DO SCHEMA CACHE DO GOTRUE (Supabase Auth)
 -- ============================================================
--- Garante que o GoTrue consiga ler os usuários sem dar erro 500
+
 update auth.users
 set confirmation_token = '',
     recovery_token = '',
@@ -90,7 +118,9 @@ where email in (
   'joao@barbergo.com',
   'pedro@barbergo.com',
   'maria@barbergo.com',
-  'carlos@barbergo.com'
+  'carlos@barbergo.com',
+  'gestor1@barbergo.com',
+  'gestor2@barbergo.com'
 );
 
 -- ============================================================
@@ -103,6 +133,14 @@ insert into auth.identities (
   ('a0000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000000',
    jsonb_build_object('sub', 'a0000000-0000-4000-8000-000000000000', 'email', 'admin@barbergo.com'),
    'email', now(), now(), now(), 'a0000000-0000-4000-8000-000000000000'),
+
+  ('f0000000-0000-4000-8000-000000000000', 'f0000000-0000-4000-8000-000000000000',
+   jsonb_build_object('sub', 'f0000000-0000-4000-8000-000000000000', 'email', 'gestor1@barbergo.com'),
+   'email', now(), now(), now(), 'f0000000-0000-4000-8000-000000000000'),
+
+  ('f0000000-0000-4000-8000-000000000001', 'f0000000-0000-4000-8000-000000000001',
+   jsonb_build_object('sub', 'f0000000-0000-4000-8000-000000000001', 'email', 'gestor2@barbergo.com'),
+   'email', now(), now(), now(), 'f0000000-0000-4000-8000-000000000001'),
 
   ('b0000000-0000-4000-8000-000000000000', 'b0000000-0000-4000-8000-000000000000',
    jsonb_build_object('sub', 'b0000000-0000-4000-8000-000000000000', 'email', 'joao@barbergo.com'),
@@ -124,7 +162,7 @@ insert into auth.identities (
 -- 4. ATUALIZAR DADOS DOS PRESTADORES (criados via trigger)
 -- ============================================================
 
--- João Barbeiro
+-- João Barbeiro (BarberGo Matriz)
 update prestadores
 set descricao       = 'Barbeiro especialista em cortes clássicos e design de barba. Mais de 10 anos de experiência.',
     especialidade   = 'Cortes Clássicos e Barba',
@@ -132,10 +170,11 @@ set descricao       = 'Barbeiro especialista em cortes clássicos e design de ba
     cidade          = 'Fortaleza',
     estado          = 'CE',
     cep             = '60160-230',
-    avaliacao_media = 4.8
+    avaliacao_media = 4.8,
+    comissao_percentual = 40.00
 where usuario_id = 'b0000000-0000-4000-8000-000000000000';
 
--- Pedro Navalha
+-- Pedro Navalha (Barbearia Imperial)
 update prestadores
 set descricao       = 'Estilista capilar focado em degradê moderno, pigmentação e estética jovem.',
     especialidade   = 'Degradê e Pigmentação',
@@ -143,36 +182,47 @@ set descricao       = 'Estilista capilar focado em degradê moderno, pigmentaç�
     cidade          = 'Fortaleza',
     estado          = 'CE',
     cep             = '60811-341',
-    avaliacao_media = 4.9
+    avaliacao_media = 4.9,
+    comissao_percentual = 50.00
 where usuario_id = 'c0000000-0000-4000-8000-000000000000';
 
 -- ============================================================
 -- 5. SERVIÇOS (10 serviços)
 -- ============================================================
 
-insert into servicos (prestador_id, nome, descricao, preco, duracao_minutos) values
-  -- João (5 serviços)
+insert into servicos (prestador_id, loja_id, nome, descricao, preco, duracao_minutos) values
+  -- João (5 serviços - BarberGo Matriz)
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
+   '00000000-0000-0000-0000-000000000000',
    'Corte Masculino', 'Corte completo com tesoura e máquina, inclui lavagem', 40.00, 40),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
+   '00000000-0000-0000-0000-000000000000',
    'Barba Completa', 'Barba feita na navalha com toalha quente e hidratação', 30.00, 30),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
+   '00000000-0000-0000-0000-000000000000',
    'Combo Corte + Barba', 'Combo completo promocional com lavagem', 60.00, 70),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
+   '00000000-0000-0000-0000-000000000000',
    'Corte Infantil', 'Corte especial para crianças até 12 anos', 30.00, 30),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
+   '00000000-0000-0000-0000-000000000000',
    'Sobrancelha', 'Design e limpeza de sobrancelha masculina', 15.00, 15),
 
-  -- Pedro (5 serviços)
+  -- Pedro (5 serviços - Barbearia Imperial)
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
+   '11111111-1111-1111-1111-111111111111',
    'Degradê Navalhado', 'Corte com transição limpa na navalha', 45.00, 45),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
+   '11111111-1111-1111-1111-111111111111',
    'Pigmentação', 'Pigmentação para disfarçar imperfeições e realçar o corte', 25.00, 20),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
+   '11111111-1111-1111-1111-111111111111',
    'Hidratação Capilar', 'Tratamento intensivo com cremes profissionais', 35.00, 30),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
+   '11111111-1111-1111-1111-111111111111',
    'Combo Degradê + Barba', 'Degradê completo + barba na navalha', 65.00, 60),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
+   '11111111-1111-1111-1111-111111111111',
    'Luzes Masculinas', 'Mechas e luzes para cabelo masculino', 80.00, 90);
 
 -- ============================================================
@@ -220,7 +270,7 @@ where p.usuario_id = 'c0000000-0000-4000-8000-000000000000'
 on conflict do nothing;
 
 -- ============================================================
--- 7. AGENDAMENTOS + 8. PAGAMENTOS PIX (bloco PL/pgSQL)
+-- 7. CONTRATAÇÕES + 8. PAGAMENTOS PIX + COMISSÕES (PL/pgSQL)
 -- ============================================================
 
 do $$
@@ -238,11 +288,11 @@ declare
   v_agenda_joao_2 uuid;
   v_agenda_pedro_1 uuid;
   v_agenda_pedro_2 uuid;
-  v_agendamento_1 uuid;
-  v_agendamento_2 uuid;
-  v_agendamento_3 uuid;
-  v_agendamento_4 uuid;
-  v_agendamento_5 uuid;
+  v_contratacao_1 uuid;
+  v_contratacao_2 uuid;
+  v_contratacao_3 uuid;
+  v_contratacao_4 uuid;
+  v_contratacao_5 uuid;
 begin
   select id into v_consumidor_maria from consumidores where usuario_id = 'd0000000-0000-4000-8000-000000000000';
   select id into v_consumidor_carlos from consumidores where usuario_id = 'e0000000-0000-4000-8000-000000000000';
@@ -260,68 +310,87 @@ begin
   select id into v_agenda_pedro_1 from agenda where prestador_id = v_prestador_pedro and disponivel = true order by data, hora_inicio limit 1;
   select id into v_agenda_pedro_2 from agenda where prestador_id = v_prestador_pedro and disponivel = true and id != v_agenda_pedro_1 order by data, hora_inicio limit 1;
 
-  -- Agendamento 1: Maria -> João (Corte) — Concluído
-  insert into agendamentos (consumidor_id, prestador_id, servico_id, agenda_id, valor_total, status, observacoes)
-  values (v_consumidor_maria, v_prestador_joao, v_servico_corte, v_agenda_joao_1, 40.00, 'concluido', 'Primeira visita, corte simples')
-  returning id into v_agendamento_1;
+  -- Contratação 1: Maria -> João (Corte) — Concluído (BarberGo Matriz)
+  insert into contratacoes (consumidor_id, prestador_id, servico_id, agenda_id, loja_id, valor_total, status, observacoes)
+  values (v_consumidor_maria, v_prestador_joao, v_servico_corte, v_agenda_joao_1, '00000000-0000-0000-0000-000000000000', 40.00, 'concluido', 'Primeira visita, corte simples')
+  returning id into v_contratacao_1;
 
-  -- Agendamento 2: Maria -> Pedro (Degradê) — Pago
-  insert into agendamentos (consumidor_id, prestador_id, servico_id, agenda_id, valor_total, status, observacoes)
-  values (v_consumidor_maria, v_prestador_pedro, v_servico_degrade, v_agenda_pedro_1, 45.00, 'pago', null)
-  returning id into v_agendamento_2;
+  -- Contratação 2: Maria -> Pedro (Degradê) — Confirmado (Barbearia Imperial)
+  insert into contratacoes (consumidor_id, prestador_id, servico_id, agenda_id, loja_id, valor_total, status, observacoes)
+  values (v_consumidor_maria, v_prestador_pedro, v_servico_degrade, v_agenda_pedro_1, '11111111-1111-1111-1111-111111111111', 45.00, 'confirmado', null)
+  returning id into v_contratacao_2;
 
-  -- Agendamento 3: Carlos -> João (Combo) — Pendente
-  insert into agendamentos (consumidor_id, prestador_id, servico_id, agenda_id, valor_total, status, observacoes)
-  values (v_consumidor_carlos, v_prestador_joao, v_servico_combo, v_agenda_joao_2, 60.00, 'pendente', 'Gostaria de corte social')
-  returning id into v_agendamento_3;
+  -- Contratação 3: Carlos -> João (Combo) — Pendente (BarberGo Matriz)
+  insert into contratacoes (consumidor_id, prestador_id, servico_id, agenda_id, loja_id, valor_total, status, observacoes)
+  values (v_consumidor_carlos, v_prestador_joao, v_servico_combo, v_agenda_joao_2, '00000000-0000-0000-0000-000000000000', 60.00, 'pendente', 'Gostaria de corte social')
+  returning id into v_contratacao_3;
 
-  -- Agendamento 4: Carlos -> Pedro (Pigmentação) — Pago (antigo confirmado)
-  insert into agendamentos (consumidor_id, prestador_id, servico_id, agenda_id, valor_total, status, observacoes)
-  values (v_consumidor_carlos, v_prestador_pedro, v_servico_pigmentacao, v_agenda_pedro_2, 25.00, 'pago', null)
-  returning id into v_agendamento_4;
+  -- Contratação 4: Carlos -> Pedro (Pigmentação) — Confirmado (Barbearia Imperial)
+  insert into contratacoes (consumidor_id, prestador_id, servico_id, agenda_id, loja_id, valor_total, status, observacoes)
+  values (v_consumidor_carlos, v_prestador_pedro, v_servico_pigmentacao, v_agenda_pedro_2, '11111111-1111-1111-1111-111111111111', 25.00, 'confirmado', null)
+  returning id into v_contratacao_4;
 
-  -- Agendamento 5: Maria -> João (Barba) — Cancelado
-  insert into agendamentos (consumidor_id, prestador_id, servico_id, agenda_id, valor_total, status, observacoes)
-  values (v_consumidor_maria, v_prestador_joao, v_servico_barba, null, 30.00, 'cancelado', 'Não pude comparecer')
-  returning id into v_agendamento_5;
+  -- Contratação 5: Maria -> João (Barba) — Cancelado (BarberGo Matriz)
+  insert into contratacoes (consumidor_id, prestador_id, servico_id, agenda_id, loja_id, valor_total, status, observacoes)
+  values (v_consumidor_maria, v_prestador_joao, v_servico_barba, null, '00000000-0000-0000-0000-000000000000', 30.00, 'cancelado', 'Não pude comparecer')
+  returning id into v_contratacao_5;
 
   update agenda set disponivel = false where id in (v_agenda_joao_1, v_agenda_joao_2, v_agenda_pedro_1, v_agenda_pedro_2);
 
   -- Pagamentos PIX (5)
-  insert into pagamentos (agendamento_id, mercado_pago_payment_id, external_reference, valor, status)
+  insert into pagamentos (contratacao_id, mercado_pago_payment_id, external_reference, valor, status)
   values
-    (v_agendamento_1, 'MP-PAY-100001', 'BARBERGO-AG-001', 40.00, 'aprovado'),
-    (v_agendamento_2, 'MP-PAY-100002', 'BARBERGO-AG-002', 45.00, 'aprovado'),
-    (v_agendamento_3, null,             'BARBERGO-AG-003', 60.00, 'pendente'),
-    (v_agendamento_4, 'MP-PAY-100004', 'BARBERGO-AG-004', 25.00, 'aprovado'),
-    (v_agendamento_5, 'MP-PAY-100005', 'BARBERGO-AG-005', 30.00, 'estornado');
+    (v_contratacao_1, 'MP-PAY-100001', 'BARBERGO-AG-001', 40.00, 'aprovado'),
+    (v_contratacao_2, 'MP-PAY-100002', 'BARBERGO-AG-002', 45.00, 'aprovado'),
+    (v_contratacao_3, null,             'BARBERGO-AG-003', 60.00, 'pendente'),
+    (v_contratacao_4, 'MP-PAY-100004', 'BARBERGO-AG-004', 25.00, 'aprovado'),
+    (v_contratacao_5, 'MP-PAY-100005', 'BARBERGO-AG-005', 30.00, 'estornado');
+
+  -- Comissões Iniciais (Inserção manual de contratação concluída para popular gráficos sem depender de update posterior)
+  insert into comissoes (prestador_id, contratacao_id, percentual, valor, status)
+  values
+    (v_prestador_joao, v_contratacao_1, 40.00, 16.00, 'pendente');
+
 end $$;
 
 -- ============================================================
--- 9. PRODUTOS (10 produtos)
+-- 9. PRODUTOS (10 produtos categorizados por loja e estoque mínimo)
 -- ============================================================
 
-insert into produtos (prestador_id, nome, descricao, preco, estoque, ativo) values
+insert into produtos (prestador_id, loja_id, nome, descricao, preco, estoque, categoria, estoque_minimo, ativo) values
+  -- BarberGo Matriz
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Pomada Modeladora', 'Pomada efeito seco para modelagem duradoura', 45.00, 25, true),
+   '00000000-0000-0000-0000-000000000000',
+   'Pomada Modeladora Dry', 'Pomada efeito seco para modelagem duradoura de cabelo.', 45.00, 25, 'Finalizadores', 5, true),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Gel Fixador Forte', 'Gel de fixação extra forte com brilho', 28.00, 30, true),
+   '00000000-0000-0000-0000-000000000000',
+   'Gel Cola Extra Forte', 'Gel de fixação ultra forte com brilho molhado.', 28.00, 3, 'Finalizadores', 5, true), -- Alerta de estoque baixo!
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Shampoo Premium', 'Shampoo anticaspa com extrato de menta', 35.00, 20, true),
+   '00000000-0000-0000-0000-000000000000',
+   'Shampoo Refrescante Mentol', 'Shampoo refrescante anticaspa de uso diário.', 35.00, 20, 'Cabelo', 5, true),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Óleo para Barba', 'Óleo hidratante com aroma amadeirado', 55.00, 15, true),
+   '00000000-0000-0000-0000-000000000000',
+   'Óleo de Barba Sândalo', 'Óleo hidratante e amaciante com aroma amadeirado.', 55.00, 15, 'Barba', 3, true),
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Cera Modeladora', 'Cera de fixação média com acabamento natural', 38.00, 18, true),
+   '00000000-0000-0000-0000-000000000000',
+   'Cera Efeito Matte', 'Cera de modelagem com efeito fosco de média duração.', 38.00, 18, 'Finalizadores', 3, true),
+
+  -- Barbearia Imperial
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Escova Profissional', 'Escova térmica para alisamento rápido', 65.00, 10, true),
+   '11111111-1111-1111-1111-111111111111',
+   'Escova Térmica Alisadora', 'Escova profissional com cerdas de javali.', 65.00, 10, 'Acessórios', 2, true),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Spray Fixador', 'Spray de fixação leve e invisível', 22.00, 35, true),
+   '11111111-1111-1111-1111-111111111111',
+   'Laquê Fixador Forte', 'Spray aerosol de alta durabilidade e secagem rápida.', 22.00, 35, 'Finalizadores', 8, true),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Condicionador Profissional', 'Condicionador com queratina para cabelos danificados', 42.00, 12, true),
+   '11111111-1111-1111-1111-111111111111',
+   'Condicionador Hidratante', 'Condicionador pós-química de reconstrução capilar.', 42.00, 2, 'Cabelo', 5, true), -- Alerta de estoque baixo!
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Kit Barba Completo', 'Kit com óleo, balm e pente para barba', 89.00, 8, true),
+   '11111111-1111-1111-1111-111111111111',
+   'Kit Prime de Barba', 'Contém shampoo de barba, balm e pente de madeira.', 89.00, 8, 'Barba', 2, true),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Máscara Capilar', 'Máscara de reconstrução profunda 300ml', 48.00, 14, true);
+   '11111111-1111-1111-1111-111111111111',
+   'Máscara Restauradora Menta', 'Máscara refrescante de reparação profunda 300g.', 48.00, 14, 'Cabelo', 3, true);
 
 -- ============================================================
 -- 10. PEDIDOS DE PRODUTOS (5 pedidos) + PAGAMENTOS
@@ -347,13 +416,13 @@ begin
   select id into v_consumidor_maria from consumidores where usuario_id = 'd0000000-0000-4000-8000-000000000000';
   select id into v_consumidor_carlos from consumidores where usuario_id = 'e0000000-0000-4000-8000-000000000000';
 
-  select id into v_produto_pomada from produtos where nome = 'Pomada Modeladora' limit 1;
-  select id into v_produto_gel from produtos where nome = 'Gel Fixador Forte' limit 1;
-  select id into v_produto_shampoo from produtos where nome = 'Shampoo Premium' limit 1;
-  select id into v_produto_oleo from produtos where nome = 'Óleo para Barba' limit 1;
-  select id into v_produto_escova from produtos where nome = 'Escova Profissional' limit 1;
-  select id into v_produto_spray from produtos where nome = 'Spray Fixador' limit 1;
-  select id into v_produto_kit from produtos where nome = 'Kit Barba Completo' limit 1;
+  select id into v_produto_pomada from produtos where nome = 'Pomada Modeladora Dry' limit 1;
+  select id into v_produto_gel from produtos where nome = 'Gel Cola Extra Forte' limit 1;
+  select id into v_produto_shampoo from produtos where nome = 'Shampoo Refrescante Mentol' limit 1;
+  select id into v_produto_oleo from produtos where nome = 'Óleo de Barba Sândalo' limit 1;
+  select id into v_produto_escova from produtos where nome = 'Escova Térmica Alisadora' limit 1;
+  select id into v_produto_spray from produtos where nome = 'Laquê Fixador Forte' limit 1;
+  select id into v_produto_kit from produtos where nome = 'Kit Prime de Barba' limit 1;
 
   -- Pedido 1: Maria compra Pomada + Gel — Pago
   insert into pedidos (consumidor_id, valor_total, status)
@@ -403,9 +472,9 @@ end $$;
 
 insert into anuncios (prestador_id, titulo, descricao, ativo) values
   ((select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   'Desconto de Inauguração', 'Ganhe 15% de desconto em qualquer agendamento nesta semana. Aproveite!', true),
+   'Desconto de Inauguração', 'Ganhe 15% de desconto em qualquer agendamento nesta semana na BarberGo Matriz!', true),
   ((select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   'Combo Degradê + Barba + Pigmentação', 'Combo premium completo por apenas R$ 75,00. Oferta limitada!', true);
+   'Combo Imperial Especial', 'Degradê + Barba + Pigmentação por preço promocional. Agende na Barbearia Imperial.', true);
 
 -- ============================================================
 -- 12. AVALIAÇÕES (5 avaliações — trigger atualiza média)
@@ -417,13 +486,13 @@ insert into avaliacoes (consumidor_id, prestador_id, nota, comentario) values
    5, 'Atendimento incrível! João é extremamente técnico e profissional.'),
   ((select id from consumidores where usuario_id = 'e0000000-0000-4000-8000-000000000000'),
    (select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   4, 'Degradê ficou impecável. Voltarei com certeza.'),
+   4, 'Degradê ficou impecável na Imperial. Voltarei com certeza.'),
   ((select id from consumidores where usuario_id = 'd0000000-0000-4000-8000-000000000000'),
    (select id from prestadores where usuario_id = 'c0000000-0000-4000-8000-000000000000'),
-   5, 'Pedro é um artista! Pigmentação perfeita.'),
+   5, 'Pedro Navalha arrebenta! Pigmentação perfeita.'),
   ((select id from consumidores where usuario_id = 'e0000000-0000-4000-8000-000000000000'),
    (select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
-   4, 'Corte muito bom, ambiente agradável. Recomendo.'),
+   4, 'Corte muito bom, ambiente agradável na Matriz. Recomendo.'),
   ((select id from consumidores where usuario_id = 'd0000000-0000-4000-8000-000000000000'),
    (select id from prestadores where usuario_id = 'b0000000-0000-4000-8000-000000000000'),
    5, 'Combo corte + barba excelente! Saí de lá outro homem.');

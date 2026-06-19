@@ -11,12 +11,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const prestadorId = searchParams.get("prestadorId");
     const data = searchParams.get("data") || undefined;
+    const somenteDisponiveis = searchParams.get("disponivel") === "true";
 
     if (!prestadorId) {
       throw new ErroAplicacao("prestadorId é obrigatório.", 400);
     }
 
-    const slots = await agendaServico.listarAgendaPrestador(prestadorId, data);
+    const slots = await agendaServico.listarAgendaPrestador(prestadorId, data, somenteDisponiveis);
     return responderSucesso(slots, "Agenda carregada com sucesso.");
   } catch (erro) {
     return responderErro(erro);

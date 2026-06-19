@@ -18,9 +18,9 @@ interface Agendamento {
   prestador_especialidade: string;
   servico_nome: string;
   duracao_minutos: number;
-  agenda_data: string;
-  hora_inicio: string;
-  hora_fim: string;
+  agenda_data: string | null;
+  hora_inicio: string | null;
+  hora_fim: string | null;
 }
 
 export default function ContratacoesAdminPage() {
@@ -47,22 +47,23 @@ export default function ContratacoesAdminPage() {
       setAgendamentos(
         (data || []).map((a: any) => ({
           id: a.agendamento_id,
-          status: a.status,
-          valor: Number(a.valor),
-          observacao: a.observacao,
-          created_at: a.created_at,
-          consumidor_nome: a.consumidor_nome || "Cliente",
+          status: a.status || "pendente",
+          valor: Number(a.valor || 0),
+          observacao: a.observacao || null,
+          created_at: a.created_at || new Date().toISOString(),
+          consumidor_nome: a.consumidor_nome || "Cliente Removido",
           consumidor_email: a.consumidor_email || "",
-          prestador_nome: a.prestador_nome || "Barbeiro",
-          prestador_especialidade: a.prestador_especialidade || "",
-          servico_nome: a.servico_nome || "Serviço",
+          prestador_nome: a.prestador_nome || "Barbeiro Removido",
+          prestador_especialidade: a.prestador_especialidade || "Geral",
+          servico_nome: a.servico_nome || "Serviço Removido",
           duracao_minutos: Number(a.duracao_minutos || 30),
-          agenda_data: a.agenda_data,
-          hora_inicio: a.hora_inicio,
-          hora_fim: a.hora_fim
+          agenda_data: a.agenda_data || null,
+          hora_inicio: a.hora_inicio || null,
+          hora_fim: a.hora_fim || null
         }))
       );
     } catch (err: any) {
+      console.error("Erro ao buscar agendamentos/contratações no Supabase:", err);
       toast.error("Erro ao buscar contratações: " + err.message);
     } finally {
       setCarregando(false);
@@ -79,7 +80,7 @@ export default function ContratacoesAdminPage() {
     try {
       // 1. Busca o ID do slot da agenda para liberá-lo
       const { data: agData, error: findErr } = await supabase
-        .from("agendamentos")
+        .from("contratacoes")
         .select("agenda_id")
         .eq("id", id)
         .single();
@@ -88,7 +89,7 @@ export default function ContratacoesAdminPage() {
 
       // 2. Cancela agendamento e libera a agenda no banco
       const promises = [
-        supabase.from("agendamentos").update({ status: "cancelado" }).eq("id", id)
+        supabase.from("contratacoes").update({ status: "cancelado" }).eq("id", id)
       ];
 
       if (agData?.agenda_id) {
@@ -105,6 +106,7 @@ export default function ContratacoesAdminPage() {
       }
       toast.success("Agendamento cancelado com sucesso!");
     } catch (err: any) {
+      console.error("Erro ao cancelar agendamento no Supabase:", err);
       toast.error("Erro ao cancelar: " + err.message);
     }
   };
@@ -120,9 +122,11 @@ export default function ContratacoesAdminPage() {
     return matchesBusca && matchesStatus;
   });
 
-  const formatarData = (dataSql: string) => {
-    if (!dataSql) return "";
-    const [ano, mes, dia] = dataSql.split("-");
+  const formatarData = (dataSql?: string | null) => {
+    if (!dataSql) return "--/--/----";
+    const partes = dataSql.split("-");
+    if (partes.length < 3) return dataSql;
+    const [ano, mes, dia] = partes;
     return `${dia}/${mes}/${ano}`;
   };
 
@@ -196,7 +200,7 @@ export default function ContratacoesAdminPage() {
                     <td className="p-4 text-texto_secundario font-medium">{a.prestador_nome}</td>
                     <td className="p-4 font-medium">{a.servico_nome}</td>
                     <td className="p-4 text-texto_secundario">
-                      {formatarData(a.agenda_data)} - {a.hora_inicio.slice(0, 5)}
+                      {formatarData(a.agenda_data)} às {a.hora_inicio?.slice(0, 5) || "--:--"}
                     </td>
                     <td className="p-4 font-serif font-bold text-verde_escuro">
                       R$ {a.valor.toFixed(2)}
@@ -263,9 +267,9 @@ export default function ContratacoesAdminPage() {
               <div className="flex items-center justify-between p-3 bg-bege_borda/15 rounded-lg border border-bege_borda/40">
                 <span className="font-semibold text-xs text-texto_secundario uppercase">Status Atual</span>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${
-                  agSelecionado.status === "pago" || agSelecionado.status === "concluido" 
+                  agSelecionado.status === "confirmado" || agSelecionado.status === "remarcado" || agSelecionado.status === "concluido" 
                     ? "bg-emerald-100 text-emerald-800" 
-                    : agSelecionado.status === "cancelado" 
+                    : agSelecionado.status === "cancelado" || agSelecionado.status === "recusado"
                       ? "bg-rose-100 text-rose-800" 
                       : "bg-amber-100 text-amber-800"
                 }`}>
@@ -298,7 +302,7 @@ export default function ContratacoesAdminPage() {
                     <p className="font-semibold text-verde_petroleo">Serviço & Horário</p>
                     <p className="text-xs text-texto_secundario">{agSelecionado.servico_nome} ({agSelecionado.duracao_minutos} min)</p>
                     <p className="text-xs text-texto_secundario">Data: {formatarData(agSelecionado.agenda_data)}</p>
-                    <p className="text-xs text-texto_secundario">Horário: {agSelecionado.hora_inicio.slice(0, 5)} - {agSelecionado.hora_fim.slice(0, 5)}</p>
+                    <p className="text-xs text-texto_secundario">Horário: {agSelecionado.hora_inicio?.slice(0, 5) || "--:--"} - {agSelecionado.hora_fim?.slice(0, 5) || "--:--"}</p>
                   </div>
                 </div>
 

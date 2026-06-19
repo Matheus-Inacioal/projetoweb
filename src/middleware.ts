@@ -59,7 +59,8 @@ export async function middleware(request: NextRequest) {
     "/agenda",
     "/favoritos",
     "/contratacoes",
-    "/admin"
+    "/admin",
+    "/gestor"
   ];
 
   const ehRotaProtegida = rotasProtegidas.some((rota) => path.startsWith(rota));
@@ -95,6 +96,12 @@ export async function middleware(request: NextRequest) {
     }
 
     if (path.startsWith("/favoritos") && tipoUsuario !== "consumidor") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/dashboard";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (path.startsWith("/gestor") && tipoUsuario !== "gestor_loja" && tipoUsuario !== "admin") {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
       return NextResponse.redirect(redirectUrl);

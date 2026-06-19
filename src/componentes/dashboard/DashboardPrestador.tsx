@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useBuscarDados } from "@/hooks/useBuscarDados";
 import { useMutacao } from "@/hooks/useMutacao";
 import type { AgendamentoDetalhado, AnuncioResumo } from "@/tipos/dados";
@@ -113,9 +114,17 @@ export function DashboardPrestador() {
       <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
         {/* Agendamentos Recebidos */}
         <section className="space-y-6">
-          <div className="border-b border-bege_borda pb-4">
-            <h2 className="text-2xl font-serif font-bold text-texto_principal">Agenda de Atendimento</h2>
-            <p className="text-sm text-texto_secundario">Acompanhe e confirme os serviços solicitados pelos clientes.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-bege_borda pb-4">
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-texto_principal">Agenda de Atendimento</h2>
+              <p className="text-sm text-texto_secundario">Acompanhe e confirme os serviços solicitados pelos clientes.</p>
+            </div>
+            <Link
+              href="/area-prestador/agendamentos"
+              className="rounded-xl bg-dourado text-white font-semibold text-xs px-4 py-2.5 text-center hover:bg-opacity-90 transition shadow-suave"
+            >
+              Gerenciador de Contratações 🗓️
+            </Link>
           </div>
 
           {cCarregando ? (
@@ -132,13 +141,17 @@ export function DashboardPrestador() {
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         c.status === "pendente" && "bg-yellow-100 text-yellow-800"
                       } ${
-                        c.status === "aguardando_pagamento" && "bg-amber-100 text-amber-800"
+                        c.status === "confirmado" && "bg-green-100 text-green-800"
                       } ${
-                        c.status === "pago" && "bg-purple-100 text-purple-800"
+                        c.status === "remarcado" && "bg-blue-100 text-blue-800"
                       } ${
-                        c.status === "concluido" && "bg-green-100 text-green-800"
+                        c.status === "remarcacao_solicitada" && "bg-orange-100 text-orange-800"
                       } ${
-                        c.status === "cancelado" && "bg-red-100 text-red-800"
+                        c.status === "concluido" && "bg-teal-100 text-teal-800"
+                      } ${
+                        c.status === "recusado" && "bg-red-100 text-red-800"
+                      } ${
+                        c.status === "cancelado" && "bg-gray-100 text-gray-800"
                       }`}>
                         {c.status.toUpperCase()}
                       </span>
@@ -161,16 +174,16 @@ export function DashboardPrestador() {
                   <div className="flex gap-2">
                     {c.status === "pendente" && (
                       <>
-                        <Botao onClick={() => handleMudarStatus(c.id, "pago")} className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700">
-                          Confirmar (Pago)
+                        <Botao onClick={() => handleMudarStatus(c.id, "confirmado")} className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700">
+                          Confirmar
                         </Botao>
-                        <Botao onClick={() => handleMudarStatus(c.id, "cancelado")} variante="perigo" className="px-3 py-1.5 text-xs">
+                        <Botao onClick={() => handleMudarStatus(c.id, "recusado")} variante="perigo" className="px-3 py-1.5 text-xs">
                           Recusar
                         </Botao>
                       </>
                     )}
 
-                    {c.status === "pago" && (
+                    {(c.status === "confirmado" || c.status === "remarcado") && (
                       <>
                         <Botao onClick={() => handleMudarStatus(c.id, "concluido")} className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700">
                           Concluir

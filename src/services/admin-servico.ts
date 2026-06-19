@@ -30,7 +30,7 @@ export const adminServico = {
       supabase.from("servicos").select("*", { count: "exact", head: true }),
       supabase.from("produtos").select("*", { count: "exact", head: true }),
       supabase.from("anuncios").select("*", { count: "exact", head: true }),
-      supabase.from("agendamentos").select("*", { count: "exact", head: true }),
+      supabase.from("contratacoes").select("*", { count: "exact", head: true }),
       supabase.from("pagamentos").select("valor, created_at").eq("status", "aprovado"),
       supabase.from("pagamentos").select("id", { count: "exact", head: true }).eq("status", "pendente"),
       supabase.from("pagamentos_produtos").select("valor, created_at").eq("status", "aprovado"),

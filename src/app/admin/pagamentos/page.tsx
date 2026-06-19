@@ -36,46 +36,99 @@ export default function PagamentosAdminPage() {
     try {
       setCarregando(true);
 
-      // 1. Busca pagamentos de serviços
-      const { data: servs, error: sErr } = await supabase
-        .from("pagamentos")
-        .select("*, agendamentos(consumidores(usuarios(nome)), prestadores(usuarios(nome)))");
-      if (sErr) throw sErr;
+      let listaServicos: PagamentoUnificado[] = [];
+      let listaProdutos: PagamentoUnificado[] = [];
 
-      // 2. Busca pagamentos de produtos
-      const { data: prods, error: pErr } = await supabase
-        .from("pagamentos_produtos")
-        .select("*, pedidos(consumidores(usuarios(nome)))");
-      if (pErr) throw pErr;
+      // 1. Busca pagamentos de serviços (com fallback se join falhar)
+      try {
+        const { data: servs, error: sErr } = await supabase
+          .from("pagamentos")
+          .select("*, contratacoes(consumidores(usuarios(nome)), prestadores(usuarios(nome)))");
 
-      // 3. Unifica as duas listas
-      const listaServicos: PagamentoUnificado[] = (servs || []).map((s: any) => ({
-        id: s.id,
-        referencia: s.external_reference,
-        payment_id: s.mercado_pago_payment_id,
-        valor: Number(s.valor),
-        status: s.status,
-        created_at: s.created_at,
-        tipo: "Serviço",
-        cliente: s.agendamentos?.consumidores?.usuarios?.nome || "Cliente",
-        detalhe: `Agendamento c/ ${s.agendamentos?.prestadores?.usuarios?.nome || "Barbeiro"}`,
-        qr_code: s.qr_code,
-        qr_code_base64: s.qr_code_base64
-      }));
+        if (sErr) {
+          console.warn("[Pagamentos] Join principal falhou, tentando query simples:", sErr.message);
+          // Fallback: query sem join
+          const { data: servsSimples, error: sErr2 } = await supabase
+            .from("pagamentos")
+            .select("*");
+          if (sErr2) throw sErr2;
 
-      const listaProdutos: PagamentoUnificado[] = (prods || []).map((p: any) => ({
-        id: p.id,
-        referencia: p.external_reference,
-        payment_id: p.mercado_pago_payment_id,
-        valor: Number(p.valor),
-        status: p.status,
-        created_at: p.created_at,
-        tipo: "Produto",
-        cliente: p.pedidos?.consumidores?.usuarios?.nome || "Cliente",
-        detalhe: `Pedido #${p.pedido_id.slice(0, 8).toUpperCase()}`,
-        qr_code: p.qr_code,
-        qr_code_base64: p.qr_code_base64
-      }));
+          listaServicos = (servsSimples || []).map((s: any) => ({
+            id: s.id,
+            referencia: s.external_reference || s.id,
+            payment_id: s.mercado_pago_payment_id,
+            valor: Number(s.valor),
+            status: s.status,
+            created_at: s.created_at,
+            tipo: "Serviço",
+            cliente: "Cliente",
+            detalhe: `Contratação #${(s.contratacao_id || "").slice(0, 8).toUpperCase()}`,
+            qr_code: s.qr_code,
+            qr_code_base64: s.qr_code_base64
+          }));
+        } else {
+          listaServicos = (servs || []).map((s: any) => ({
+            id: s.id,
+            referencia: s.external_reference || s.id,
+            payment_id: s.mercado_pago_payment_id,
+            valor: Number(s.valor),
+            status: s.status,
+            created_at: s.created_at,
+            tipo: "Serviço",
+            cliente: s.contratacoes?.consumidores?.usuarios?.nome || "Cliente",
+            detalhe: `Agendamento c/ ${s.contratacoes?.prestadores?.usuarios?.nome || "Barbeiro"}`,
+            qr_code: s.qr_code,
+            qr_code_base64: s.qr_code_base64
+          }));
+        }
+      } catch (joinErr: any) {
+        console.warn("[Pagamentos] Tabela pagamentos indisponível:", joinErr.message);
+      }
+
+      // 2. Busca pagamentos de produtos (com fallback se join falhar)
+      try {
+        const { data: prods, error: pErr } = await supabase
+          .from("pagamentos_produtos")
+          .select("*, pedidos(consumidores(usuarios(nome)))");
+
+        if (pErr) {
+          console.warn("[PagProdutos] Join falhou, tentando query simples:", pErr.message);
+          const { data: prodsSimples, error: pErr2 } = await supabase
+            .from("pagamentos_produtos")
+            .select("*");
+          if (pErr2) throw pErr2;
+
+          listaProdutos = (prodsSimples || []).map((p: any) => ({
+            id: p.id,
+            referencia: p.external_reference || p.id,
+            payment_id: p.mercado_pago_payment_id,
+            valor: Number(p.valor),
+            status: p.status,
+            created_at: p.created_at,
+            tipo: "Produto",
+            cliente: "Cliente",
+            detalhe: `Pedido #${(p.pedido_id || "").slice(0, 8).toUpperCase() || "REMOVIDO"}`,
+            qr_code: p.qr_code,
+            qr_code_base64: p.qr_code_base64
+          }));
+        } else {
+          listaProdutos = (prods || []).map((p: any) => ({
+            id: p.id,
+            referencia: p.external_reference || p.id,
+            payment_id: p.mercado_pago_payment_id,
+            valor: Number(p.valor),
+            status: p.status,
+            created_at: p.created_at,
+            tipo: "Produto",
+            cliente: p.pedidos?.consumidores?.usuarios?.nome || "Cliente",
+            detalhe: `Pedido #${(p.pedido_id || "").slice(0, 8).toUpperCase() || "REMOVIDO"}`,
+            qr_code: p.qr_code,
+            qr_code_base64: p.qr_code_base64
+          }));
+        }
+      } catch (joinErr: any) {
+        console.warn("[PagProdutos] Tabela pagamentos_produtos indisponível:", joinErr.message);
+      }
 
       const unificada = [...listaServicos, ...listaProdutos].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -98,7 +151,7 @@ export default function PagamentosAdminPage() {
     const matchesBusca =
       p.cliente.toLowerCase().includes(query) ||
       p.detalhe.toLowerCase().includes(query) ||
-      p.referencia.toLowerCase().includes(query);
+      (p.referencia || "").toLowerCase().includes(query);
 
     const matchesStatus = filtroStatus === "todos" || p.status === filtroStatus;
     const matchesTipo = filtroTipo === "todos" || p.tipo === filtroTipo;
@@ -317,7 +370,7 @@ export default function PagamentosAdminPage() {
               QR Code do Pagamento
             </h3>
             <p className="text-xs text-texto_secundario mb-4">
-              Valor: {formatarMoeda(pixVisualizando.valor)} | Ref: {pixVisualizando.referencia.slice(0, 12)}
+              Valor: {formatarMoeda(pixVisualizando.valor)} | Ref: {pixVisualizando.referencia?.slice(0, 12) || "SEM REF"}
             </p>
 
             {/* QR Code image */}

@@ -4,8 +4,6 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
-    console.log("Recebido Webhook do Mercado Pago:", JSON.stringify(payload));
-
     const resultado = await pagamentoServico.processarWebhook(payload);
 
     return NextResponse.json({ sucesso: true, resultado });

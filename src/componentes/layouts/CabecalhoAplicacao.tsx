@@ -7,6 +7,8 @@ function montarLinks(sessao: SessaoUsuario | null) {
   if (!sessao) {
     return [
       { href: "/", label: "Início" },
+      { href: "/lojas", label: "Barbearias" },
+      { href: "/loja/produtos", label: "Produtos" },
       { href: "/login", label: "Entrar" },
       { href: "/cadastro", label: "Criar conta" }
     ];
@@ -14,9 +16,10 @@ function montarLinks(sessao: SessaoUsuario | null) {
 
   if (sessao.tipoUsuario === "consumidor") {
     return [
-      { href: "/dashboard", label: "Encontrar Prestadores" },
-      { href: "/favoritos", label: "Favoritos" },
+      { href: "/lojas", label: "Barbearias" },
+      { href: "/loja/produtos", label: "Produtos" },
       { href: "/contratacoes", label: "Minhas Contratações" },
+      { href: "/favoritos", label: "Favoritos" },
       { href: "/perfil", label: "Perfil" }
     ];
   }
@@ -26,6 +29,17 @@ function montarLinks(sessao: SessaoUsuario | null) {
       { href: "/dashboard", label: "Meu Dashboard" },
       { href: "/agenda", label: "Gerenciar Agenda" },
       { href: "/perfil", label: "Perfil do Prestador" }
+    ];
+  }
+
+  if (sessao.tipoUsuario === "gestor_loja") {
+    return [
+      { href: "/gestor/dashboard", label: "Meu Painel" },
+      { href: "/gestor/prestadores", label: "Barbeiros" },
+      { href: "/gestor/servicos", label: "Serviços" },
+      { href: "/gestor/produtos", label: "Estoque" },
+      { href: "/gestor/comissoes", label: "Comissões" },
+      { href: "/perfil", label: "Perfil" }
     ];
   }
 

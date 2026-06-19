@@ -14,7 +14,9 @@ import {
   DollarSign,
   Megaphone,
   FileText,
-  Settings
+  Settings,
+  Store,
+  Percent
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -23,14 +25,17 @@ export function SidebarAdmin() {
 
   const links = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Lojas", href: "/admin/lojas", icon: Store },
+    { name: "Gestores", href: "/admin/gestores", icon: UserCheck },
     { name: "Usuários", href: "/admin/usuarios", icon: Users },
     { name: "Prestadores", href: "/admin/prestadores", icon: Briefcase },
-    { name: "Consumidores", href: "/admin/consumidores", icon: UserCheck },
+    { name: "Consumidores", href: "/admin/consumidores", icon: Users }, // let's use Users for Consumidores to free up UserCheck or just keep it simple
     { name: "Serviços", href: "/admin/servicos", icon: Scissors },
     { name: "Produtos", href: "/admin/produtos", icon: ShoppingBag },
     { name: "Agenda", href: "/admin/agenda", icon: Calendar },
     { name: "Contratações", href: "/admin/contratacoes", icon: CalendarCheck },
     { name: "Pagamentos", href: "/admin/pagamentos", icon: DollarSign },
+    { name: "Comissões", href: "/admin/comissoes", icon: Percent },
     { name: "Anúncios", href: "/admin/anuncios", icon: Megaphone },
     { name: "Relatórios", href: "/admin/relatorios", icon: FileText },
     { name: "Configurações", href: "/admin/configuracoes", icon: Settings }

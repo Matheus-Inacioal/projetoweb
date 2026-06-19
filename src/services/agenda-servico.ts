@@ -2,11 +2,11 @@ import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
 import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
 
 export const agendaServico = {
-  async listarAgendaPrestador(prestadorId: string, data?: string) {
+  async listarAgendaPrestador(prestadorId: string, data?: string, somenteDisponiveis: boolean = false) {
     const supabase = criarClienteSupabaseServidor();
 
     let query = supabase
-      .from("agenda")
+      .from(somenteDisponiveis ? "vw_agenda_disponivel" : "agenda")
       .select("*")
       .eq("prestador_id", prestadorId)
       .order("data", { ascending: true })

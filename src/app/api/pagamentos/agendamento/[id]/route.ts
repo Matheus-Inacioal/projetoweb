@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: Params) {
     // Apenas o consumidor associado (ou admin) pode criar o pagamento do agendamento
     await obterSessaoObrigatoriaApi(["consumidor", "admin"]);
 
-    const pagamento = await pagamentoServico.criarPagamentoAgendamento(params.id);
+    const pagamento = await pagamentoServico.criarPagamentoContratacao(params.id);
     return responderSucesso(pagamento, "Pagamento do agendamento gerado com sucesso.");
   } catch (erro) {
     return responderErro(erro);

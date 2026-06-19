@@ -26,17 +26,19 @@ export async function PUT(request: Request, { params }: Params) {
     const sessao = await obterSessaoObrigatoriaApi(["prestador"]);
     const prestador = await prestadorServico.obterPrestadorPorUsuarioId(sessao.usuarioId);
 
-    const { nome, descricao, preco, estoque, imagemUrl, ativo } = await request.json();
+    const { nome, descricao, preco, estoque, categoria, estoqueMinimo, imagemUrl, ativo } = await request.json();
 
     if (!nome || preco === undefined || estoque === undefined) {
       throw new ErroAplicacao("Campos obrigatórios ausentes (nome, preco, estoque).", 400);
     }
 
-    const produto = await produtoServico.atualizarProduto(params.id, prestador.id, {
+    const produto = await produtoServico.atualizarProduto(params.id, prestador.loja_id || "00000000-0000-0000-0000-000000000000", {
       nome,
       descricao: descricao || "",
       preco: Number(preco),
       estoque: Number(estoque),
+      categoria: categoria || "Geral",
+      estoqueMinimo: estoqueMinimo !== undefined ? Number(estoqueMinimo) : 0,
       imagemUrl,
       ativo
     });
@@ -52,7 +54,7 @@ export async function DELETE(request: Request, { params }: Params) {
     const sessao = await obterSessaoObrigatoriaApi(["prestador"]);
     const prestador = await prestadorServico.obterPrestadorPorUsuarioId(sessao.usuarioId);
 
-    await produtoServico.excluirProduto(params.id, prestador.id);
+    await produtoServico.excluirProduto(params.id, prestador.loja_id || "00000000-0000-0000-0000-000000000000");
     return responderSucesso(null, "Produto excluído com sucesso.");
   } catch (erro) {
     return responderErro(erro);

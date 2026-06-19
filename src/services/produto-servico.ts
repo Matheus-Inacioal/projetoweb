@@ -2,24 +2,22 @@ import { criarClienteSupabaseServidor } from "@/lib/banco/supabase-server";
 import { ErroAplicacao } from "@/lib/utilitarios/erro-aplicacao";
 
 export const produtoServico = {
-  async listarProdutos(filtros?: { prestadorId?: string; apenasAtivos?: boolean }) {
+  async listarProdutos(filtros?: { lojaId?: string; apenasAtivos?: boolean }) {
     const supabase = criarClienteSupabaseServidor();
 
     let query = supabase
       .from("produtos")
       .select(`
         *,
-        prestadores (
+        lojas (
           id,
-          usuarios (
-            nome
-          )
+          nome
         )
       `)
       .order("created_at", { ascending: false });
 
-    if (filtros?.prestadorId) {
-      query = query.eq("prestador_id", filtros.prestadorId);
+    if (filtros?.lojaId) {
+      query = query.eq("loja_id", filtros.lojaId);
     }
 
     if (filtros?.apenasAtivos) {
@@ -34,12 +32,14 @@ export const produtoServico = {
 
     return data.map((p: any) => ({
       id: p.id,
-      prestadorId: p.prestador_id,
-      prestadorNome: p.prestadores?.usuarios?.nome ?? "Barbearia",
+      lojaId: p.loja_id,
+      lojaNome: p.lojas?.nome ?? "Loja",
       nome: p.nome,
       descricao: p.descricao,
       preco: Number(p.preco),
       estoque: p.estoque,
+      estoqueMinimo: p.estoque_minimo ?? 0,
+      categoria: p.categoria,
       imagemUrl: p.imagem_url,
       ativo: p.ativo,
       createdAt: p.created_at
@@ -53,11 +53,9 @@ export const produtoServico = {
       .from("produtos")
       .select(`
         *,
-        prestadores (
+        lojas (
           id,
-          usuarios (
-            nome
-          )
+          nome
         )
       `)
       .eq("id", id)
@@ -69,12 +67,14 @@ export const produtoServico = {
 
     return {
       id: p.id,
-      prestadorId: p.prestador_id,
-      prestadorNome: p.prestadores?.usuarios?.nome ?? "Barbearia",
+      lojaId: p.loja_id,
+      lojaNome: p.lojas?.nome ?? "Loja",
       nome: p.nome,
       descricao: p.descricao,
       preco: Number(p.preco),
       estoque: p.estoque,
+      estoqueMinimo: p.estoque_minimo ?? 0,
+      categoria: p.categoria,
       imagemUrl: p.imagem_url,
       ativo: p.ativo,
       createdAt: p.created_at
@@ -82,19 +82,21 @@ export const produtoServico = {
   },
 
   async criarProduto(
-    prestadorId: string,
-    dados: { nome: string; descricao: string; preco: number; estoque: number; imagemUrl?: string | null }
+    lojaId: string,
+    dados: { nome: string; descricao: string; preco: number; estoque: number; estoqueMinimo?: number; categoria: string; imagemUrl?: string | null }
   ) {
     const supabase = criarClienteSupabaseServidor();
 
     const { data, error } = await supabase
       .from("produtos")
       .insert({
-        prestador_id: prestadorId,
+        loja_id: lojaId,
         nome: dados.nome,
         descricao: dados.descricao,
         preco: dados.preco,
         estoque: dados.estoque,
+        estoque_minimo: dados.estoqueMinimo ?? 0,
+        categoria: dados.categoria,
         imagem_url: dados.imagemUrl ?? null,
         ativo: true
       })
@@ -110,8 +112,8 @@ export const produtoServico = {
 
   async atualizarProduto(
     produtoId: string,
-    prestadorId: string,
-    dados: { nome: string; descricao: string; preco: number; estoque: number; imagemUrl?: string | null; ativo?: boolean }
+    lojaId: string,
+    dados: { nome: string; descricao: string; preco: number; estoque: number; estoqueMinimo?: number; categoria: string; imagemUrl?: string | null; ativo?: boolean }
   ) {
     const supabase = criarClienteSupabaseServidor();
 
@@ -122,11 +124,13 @@ export const produtoServico = {
         descricao: dados.descricao,
         preco: dados.preco,
         estoque: dados.estoque,
+        estoque_minimo: dados.estoqueMinimo ?? 0,
+        categoria: dados.categoria,
         imagem_url: dados.imagemUrl,
         ativo: dados.ativo ?? true
       })
       .eq("id", produtoId)
-      .eq("prestador_id", prestadorId)
+      .eq("loja_id", lojaId)
       .select()
       .single();
 
@@ -137,14 +141,14 @@ export const produtoServico = {
     return data;
   },
 
-  async excluirProduto(produtoId: string, prestadorId: string) {
+  async excluirProduto(produtoId: string, lojaId: string) {
     const supabase = criarClienteSupabaseServidor();
 
     const { error } = await supabase
       .from("produtos")
       .delete()
       .eq("id", produtoId)
-      .eq("prestador_id", prestadorId);
+      .eq("loja_id", lojaId);
 
     if (error) {
       throw new ErroAplicacao(error.message, 400);
@@ -153,11 +157,11 @@ export const produtoServico = {
     return true;
   },
 
-  async fazerUploadImagem(prestadorId: string, arquivo: Buffer, nomeArquivo: string, mimeType: string) {
+  async fazerUploadImagem(lojaId: string, arquivo: Buffer, nomeArquivo: string, mimeType: string) {
     const supabase = criarClienteSupabaseServidor();
 
     const extensao = nomeArquivo.split(".").pop();
-    const caminhoArquivo = `${prestadorId}/${Date.now()}.${extensao}`;
+    const caminhoArquivo = `${lojaId}/${Date.now()}.${extensao}`;
 
     const { error: uploadError } = await supabase.storage
       .from("produtos")

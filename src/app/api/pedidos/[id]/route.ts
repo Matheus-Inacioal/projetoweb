@@ -19,3 +19,15 @@ export async function GET(request: Request, { params }: Params) {
     return responderErro(erro);
   }
 }
+
+export async function PUT(request: Request, { params }: Params) {
+  try {
+    await obterSessaoObrigatoriaApi(["consumidor", "gestor_loja", "admin"]);
+    const { status } = await request.json();
+
+    const pedidoAtualizado = await pedidoServico.atualizarStatusPedido(params.id, status);
+    return responderSucesso(pedidoAtualizado, `Status do pedido atualizado para '${status}' com sucesso.`);
+  } catch (erro) {
+    return responderErro(erro);
+  }
+}
